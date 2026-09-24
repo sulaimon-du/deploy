@@ -1,0 +1,2652 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#a8583f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ателье">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Ателье карточек</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..600;1,400..500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+
+<style>
+  :root{
+    --ground:#f3eee4; --surface:#fbf8f2; --surface-raised:#ffffff;
+    --ink:#2e2a22; --ink-soft:#574f42; --ink-faint:#766b5a; --line:#ded5c4;
+    --accent:#a8583f; --on-accent:#fbf8f2; --accent-soft:#efd9c9; --rust-deep:#8c4632;
+    --amber:#c08a3e; --sage:#74855f; --teal:#4f7a73;
+    --shadow:0 1px 2px rgba(46,42,34,.06), 0 8px 24px -12px rgba(46,42,34,.18);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#000000; --surface:#0a0a0a; --surface-raised:#141414;
+      --ink:#f2ede0; --ink-soft:#cfc4ae; --ink-faint:#a39883; --line:#24201a;
+      --accent:#d9926f; --on-accent:#0a0a0a; --accent-soft:#3a2a20; --rust-deep:#e2a488;
+      --amber:#dcab6d; --sage:#9bb086; --teal:#86b3ab;
+      --shadow:0 1px 2px rgba(0,0,0,.6), 0 8px 24px -12px rgba(0,0,0,.9);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#000000; --surface:#0a0a0a; --surface-raised:#141414;
+    --ink:#f2ede0; --ink-soft:#cfc4ae; --ink-faint:#a39883; --line:#24201a;
+    --accent:#d9926f; --on-accent:#0a0a0a; --accent-soft:#3a2a20; --rust-deep:#e2a488;
+    --amber:#dcab6d; --sage:#9bb086; --teal:#86b3ab;
+    --shadow:0 1px 2px rgba(0,0,0,.6), 0 8px 24px -12px rgba(0,0,0,.9);
+  }
+  *{box-sizing:border-box}
+  @media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important} }
+  button{appearance:none;-webkit-appearance:none;margin:0;font:inherit;-webkit-tap-highlight-color:transparent}
+  body{
+    background:var(--ground); color:var(--ink);
+    font-family:"Karla",-apple-system,"Segoe UI",sans-serif;
+    padding-inline:20px; padding-block:24px 40px;
+  }
+  h1,h2,h3{font-family:"EB Garamond",Georgia,serif; margin:0; font-weight:600}
+  .app{max-width:1180px; margin-inline:auto; display:flex; flex-direction:column; gap:16px}
+
+  header{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 16px; padding-bottom:14px; border-bottom:1px solid var(--line)}
+  .wordmark{font-family:"EB Garamond",Georgia,serif; font-size:26px; font-weight:600; line-height:1.1}
+  .wordmark em{font-style:italic; font-weight:500; color:var(--accent)}
+  .wordmark small{display:block; font-family:"Karla",sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); margin-top:5px}
+
+  .offline-banner{background:var(--accent-soft); color:var(--rust-deep); border:1px solid var(--accent); border-radius:10px; padding:10px 14px; font-size:13px}
+
+  .tabs{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:4px; background:var(--surface); border:1px solid var(--line); border-radius:12px}
+  .tab{border:none; background:transparent; color:var(--ink-soft); font-family:"Karla",sans-serif; font-size:14px; font-weight:600; padding:9px 6px; border-radius:9px; cursor:pointer}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{background:var(--surface-raised); color:var(--ink); box-shadow:inset 0 0 0 1px var(--line), 0 1px 2px rgba(0,0,0,.06)}
+  .tab:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+
+  .panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 20px; display:flex; flex-direction:column; gap:14px}
+  .panel h2{font-size:17px}
+  .hint-inline{font-family:"Karla",sans-serif; font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint)}
+
+  details.field-group{padding:0; gap:0}
+  details.field-group > summary{cursor:pointer; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px; list-style:none}
+  details.field-group > summary::-webkit-details-marker{display:none}
+  details.field-group > summary::after{content:"⌄"; color:var(--ink-faint); font-size:15px; flex-shrink:0}
+  details.field-group[open] > summary::after{content:"⌃"}
+  details.field-group > .field-body{padding:0 20px 18px; display:flex; flex-direction:column}
+
+  .field{display:flex; flex-direction:column; gap:5px; margin-bottom:12px}
+  .field:last-child{margin-bottom:0}
+  .field label{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-weight:600}
+  input[type=text], input[type=number], select, textarea{
+    background:var(--ground); border:1px solid var(--line); border-radius:8px; padding:10px;
+    font-family:"Karla",sans-serif; font-size:15px; color:var(--ink); width:100%;
+  }
+  textarea{resize:vertical}
+  .field-row{display:flex; gap:10px; flex-wrap:wrap}
+  .field-row .field{flex:1; min-width:110px}
+  .hint{font-size:12.5px; color:var(--ink-faint); margin:0; line-height:1.5}
+  .checkbox-row{flex-direction:row; align-items:center; gap:8px; font-size:13.5px; color:var(--ink); text-transform:none; letter-spacing:0; font-weight:500; margin-bottom:12px}
+  .checkbox-row input{width:auto}
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{border:1px solid var(--line); background:var(--ground); color:var(--ink-soft); font-size:13px; padding:6px 12px; border-radius:999px; cursor:pointer; font-family:"Karla",sans-serif}
+  .chip[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
+  .chip:hover:not([aria-pressed="true"]){border-color:var(--accent)}
+  .chip.static{cursor:default}
+  .chip.static:hover{border-color:var(--line)}
+  .chip-remove{background:none;border:none;color:inherit;cursor:pointer;font-size:13px;line-height:1;padding:0;margin-left:6px}
+
+  .btn-primary, .btn-ghost{border-radius:8px; padding:11px 18px; font-family:"Karla",sans-serif; font-weight:600; font-size:14.5px; cursor:pointer}
+  .btn-primary{background:var(--accent); color:var(--on-accent); border:none}
+  .btn-primary:hover{background:var(--rust-deep)}
+  .btn-primary:disabled{opacity:.45; cursor:not-allowed}
+  .btn-ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--ink-faint)}
+  .btn-ghost:disabled{opacity:.4; cursor:not-allowed}
+  .btn-small{padding:6px 12px; font-size:12.5px}
+  .icon-btn{background:var(--surface); border:1px solid var(--line); border-radius:8px; width:30px; height:30px; cursor:pointer; color:var(--ink-soft); font-size:13px; display:inline-flex; align-items:center; justify-content:center}
+  .icon-btn:hover{border-color:var(--accent); color:var(--accent)}
+  .icon-btn.danger:hover{border-color:var(--rust-deep); color:var(--rust-deep)}
+  .icon-btn:disabled{opacity:.35; cursor:not-allowed}
+  .icon-btn:disabled:hover{border-color:var(--line); color:var(--ink-soft)}
+
+  .generator-grid{display:grid; grid-template-columns:minmax(300px,400px) 1fr; gap:16px; align-items:start}
+  .controls{display:flex; flex-direction:column; gap:14px}
+  .output{position:sticky; top:calc(env(safe-area-inset-top,0px) + 12px)}
+  .ticket-head{display:flex; justify-content:space-between; align-items:center}
+  .ticket-label{font-family:"EB Garamond",Georgia,serif; font-size:19px; font-weight:600}
+  .ticket-mode{font-size:11px; letter-spacing:.06em; text-transform:uppercase; padding:4px 10px; border-radius:999px; background:var(--accent-soft); color:var(--rust-deep); font-family:"Karla",sans-serif; font-weight:700}
+  .ticket-mode.air{background:color-mix(in srgb, var(--sage) 20%, var(--surface-raised)); color:var(--sage)}
+  #promptOutput{width:100%; min-height:420px; font-family:"Karla",sans-serif; font-size:13px; line-height:1.6; white-space:pre-wrap}
+  .ticket-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px}
+  .toast{font-size:12px; color:var(--sage); font-weight:600}
+  .toast.warn{color:var(--rust-deep)}
+  .warning-strip{background:var(--accent-soft); color:var(--rust-deep); border:1px solid var(--accent); border-radius:8px; padding:9px 12px; font-size:12.5px; margin-bottom:10px}
+
+  .card-context{background:var(--ground); border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:6px}
+  .card-context .empty{color:var(--ink-faint); font-size:13px}
+
+  .badge{font-size:11px; letter-spacing:.05em; text-transform:uppercase; padding:3px 10px; border-radius:999px; font-weight:700; display:inline-block}
+  .badge-dense{background:var(--accent-soft); color:var(--rust-deep)}
+  .badge-air{background:color-mix(in srgb, var(--sage) 20%, var(--surface-raised)); color:var(--sage)}
+
+  .plan-toolbar{display:flex; flex-direction:column; gap:10px}
+  .plan-gen-row{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:0 20px 18px}
+  .plan-gen-row .field{margin-bottom:0; width:120px}
+  .plan-add-row{display:flex; gap:8px; flex-wrap:wrap; padding-top:10px; border-top:1px dashed var(--line)}
+  .plan-add-row select{min-width:130px; width:auto}
+  .plan-add-row input{flex:1; min-width:180px}
+
+  .plan-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  @media (max-width:820px){ .plan-grid{grid-template-columns:1fr 1fr} }
+  @media (max-width:560px){ .plan-grid{grid-template-columns:1fr} .generator-grid{grid-template-columns:1fr} .output{position:static} }
+  .plan-card{background:var(--surface-raised); border:1px solid var(--line); border-radius:var(--radius); padding:12px; display:flex; flex-direction:column; gap:8px; box-shadow:var(--shadow)}
+  .plan-card-head{display:flex; justify-content:space-between; align-items:center}
+  .plan-index{font-family:"EB Garamond",Georgia,serif; font-size:15px; color:var(--ink-faint); font-variant-numeric:tabular-nums}
+  .plan-note{font-size:13.5px; margin:0; min-height:2.6em; color:var(--ink-soft)}
+  .plan-card-controls{display:flex; gap:6px}
+  .plan-card-actions{display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; padding-top:4px}
+  .plan-edit-form, .plan-adjust-form{display:flex; flex-direction:column; gap:6px; background:var(--ground); border:1px solid var(--line); border-radius:8px; padding:8px}
+  .plan-form-actions{display:flex; gap:6px}
+  .adjust-status{margin:0; font-size:12px; color:var(--ink-faint)}
+  .plan-prompt-preview{font-family:"Karla",sans-serif; font-size:12px; white-space:pre-wrap; max-height:220px; overflow-y:auto; background:var(--ground); border:1px solid var(--line); border-radius:8px; padding:8px}
+  .rhythm-warning{grid-column:1/-1; background:var(--accent-soft); color:var(--rust-deep); border:1px dashed var(--accent); border-radius:8px; padding:8px 12px; font-size:12.5px}
+  .placeholder-state{grid-column:1/-1; text-align:center; padding:30px 20px; color:var(--ink-faint); border:1px dashed var(--line); border-radius:var(--radius); font-size:13.5px}
+
+  .settings-grid{display:flex; flex-direction:column; gap:16px}
+  .list-editors{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px}
+  .list-editor h3{font-size:14.5px; margin-bottom:8px}
+  .list-add-row{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap}
+  .list-add-row input{flex:1; min-width:110px}
+
+  .field-with-add{display:flex; gap:6px; align-items:center}
+  .field-with-add select{flex:1; min-width:0}
+  .inline-add-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; padding:8px; background:var(--ground); border:1px solid var(--line); border-radius:8px}
+  .inline-add-row input{flex:1; min-width:100px}
+
+  .plan-sort-row{display:flex; align-items:center; gap:8px; padding:0 20px 14px; flex-wrap:wrap}
+  .plan-sort-row label{font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); font-weight:600}
+  .plan-sort-row select{width:auto; min-width:160px}
+
+  .plan-card.fresh{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft), var(--shadow); transition:border-color .6s, box-shadow .6s}
+  .card-block{background:var(--ground); border:1px solid var(--line); border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px}
+  .card-block-label{font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; display:flex; justify-content:space-between; gap:6px}
+  .card-block-text{font-size:12px; white-space:pre-wrap; color:var(--ink-soft); margin:0; max-height:4.8em; overflow:hidden}
+  .card-block-text.full{max-height:260px; overflow-y:auto}
+  .card-block-actions{display:flex; gap:4px; flex-wrap:wrap}
+  .card-block-actions .btn-ghost{padding:4px 9px; font-size:11.5px}
+  .no-prompt{font-size:12px; color:var(--ink-faint); margin:0}
+
+  .post-rows{display:flex; flex-direction:column; gap:6px; padding:0 20px 18px}
+  .post-rows-head{display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap}
+  .post-row{border:1px solid var(--line); border-radius:8px; background:var(--ground)}
+  .post-row > summary{cursor:pointer; padding:8px 10px; font-size:13px; display:flex; gap:8px; align-items:center; list-style:none}
+  .post-row > summary::-webkit-details-marker{display:none}
+  .post-row .post-row-sum{color:var(--ink-faint); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .post-row-body{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; padding:0 10px 10px}
+  .post-row-body .field{margin:0}
+  .post-row-body .wide{grid-column:1/-1}
+  .post-row-body select, .post-row-body input[type=text]{padding:7px; font-size:13px; background:var(--surface-raised)}
+  .post-row.custom{border-color:var(--accent)}
+
+  .caption-box{display:flex; flex-direction:column; gap:6px; margin-top:12px}
+  #captionOutput{min-height:120px; font-size:13px; line-height:1.55}
+  .ai-status{font-size:12px; color:var(--ink-faint); margin:0}
+  .ai-status.warn{color:var(--rust-deep)}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden}
+  .seg button{border:none; background:transparent; padding:7px 12px; font-size:13px; cursor:pointer; color:var(--ink-soft)}
+  .seg button[aria-pressed="true"]{background:var(--accent); color:var(--on-accent)}
+  input[type=password]{background:var(--ground); border:1px solid var(--line); border-radius:8px; padding:10px; font-family:"Karla",sans-serif; font-size:15px; color:var(--ink); width:100%}
+  .conn-status{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-faint); margin-left:auto}
+  .conn-status b{font-weight:600; color:var(--ink-soft)}
+  .conn-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px}
+  .conn-grid > div{display:flex; flex-direction:column; gap:8px}
+  [hidden]{display:none!important}
+</style>
+
+<div class="app" id="appRoot">
+  <header>
+    <div class="wordmark">Ателье <em>карточек</em><small>промты и план для instagram-карточек</small></div>
+    <div class="conn-status" id="connStatus"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Раздел">
+    <button type="button" class="tab" role="tab" data-tab="generator" id="tabBtnGenerator" aria-selected="true">Промт</button>
+    <button type="button" class="tab" role="tab" data-tab="plan" id="tabBtnPlan" aria-selected="false">План</button>
+    <button type="button" class="tab" role="tab" data-tab="settings" id="tabBtnSettings" aria-selected="false">Настройки</button>
+    <button type="button" class="tab" role="tab" data-tab="review" id="tabBtnReview" aria-selected="false">Проверка</button>
+  </nav>
+
+  <span class="toast" id="copyToast" hidden>Скопировано</span>
+
+  <div id="offlineBanner" class="offline-banner" hidden>Не удалось связаться с хранилищем — изменения сейчас не сохраняются. Проверьте интернет и подключение в «Настройках».</div>
+  <div id="jsErrorBanner" class="offline-banner" hidden style="background:#f6d6d6; color:#8a2222; border-color:#c0392b"></div>
+
+  <main>
+    <section id="panelGenerator">
+      <div class="generator-grid">
+        <div class="controls">
+          <details class="panel field-group" open>
+            <summary><h2>Карточка из плана</h2></summary>
+            <div class="field-body">
+              <div class="field">
+                <label for="cardSelect">Номер карточки</label>
+                <select id="cardSelect"></select>
+              </div>
+              <div class="card-context" id="cardContext"></div>
+            </div>
+          </details>
+
+          <details class="panel field-group">
+            <summary><h2>Режим <span class="hint-inline">(необязательно)</span></h2></summary>
+            <div class="field-body">
+              <div class="field">
+                <label for="modeOverrideSelect">Переопределить тип карточки</label>
+                <select id="modeOverrideSelect"></select>
+              </div>
+              <p class="hint">По умолчанию берётся тип, заданный в плане. Здесь можно сгенерировать промт другого типа для той же карточки.</p>
+              <button type="button" class="btn-ghost btn-small" data-reset="mode" style="align-self:flex-end">Сбросить</button>
+            </div>
+          </details>
+
+          <details class="panel field-group">
+            <summary><h2>Товар <span class="hint-inline">(необязательно)</span></h2></summary>
+            <div class="field-body">
+              <div class="field"><label for="productName">Название</label><input id="productName" type="text" placeholder="Декоративная ваза в форме сумки"></div>
+              <div class="field"><label for="productCategory">Категория / назначение</label><input id="productCategory" type="text" placeholder="Декор для интерьера"></div>
+              <div class="field-row">
+                <div class="field"><label for="productHeight">Высота, см</label><input id="productHeight" type="number" min="0" step="0.5"></div>
+                <div class="field"><label for="productWidth">Ширина, см</label><input id="productWidth" type="number" min="0" step="0.5"></div>
+                <div class="field"><label for="productDepth">Глубина, см</label><input id="productDepth" type="number" min="0" step="0.5"></div>
+              </div>
+              <div class="field"><label for="productBenefit1">Преимущество 1</label><input id="productBenefit1" type="text" placeholder="иначе определится автоматически"></div>
+              <div class="field"><label for="productBenefit2">Преимущество 2</label><input id="productBenefit2" type="text"></div>
+              <div class="field"><label for="productBenefit3">Преимущество 3</label><input id="productBenefit3" type="text"></div>
+              <button type="button" class="btn-ghost btn-small" data-reset="product" style="align-self:flex-end">Сбросить</button>
+            </div>
+          </details>
+
+          <details class="panel field-group" id="compositionCard">
+            <summary><h2>Композиционный приём <span class="hint-inline">(необязательно)</span></h2></summary>
+            <div class="field-body">
+              <div class="field" data-list="compositions" data-target="compositionSelect" style="margin-bottom:8px">
+                <div class="field-with-add">
+                  <select id="compositionSelect"></select>
+                  <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой приём">+</button>
+                </div>
+                <div class="inline-add-row" hidden>
+                  <input type="text" placeholder="Название приёма">
+                  <input type="text" placeholder="Описание приёма">
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+                </div>
+              </div>
+              <p class="hint" id="compositionHint"></p>
+              <button type="button" class="btn-ghost btn-small" data-reset="composition" style="align-self:flex-end">Сбросить</button>
+            </div>
+          </details>
+
+          <details class="panel field-group">
+            <summary><h2>Сцена и атмосфера <span class="hint-inline">(необязательно)</span></h2></summary>
+            <div class="field-body">
+              <div class="field" data-list="locations" data-target="locationSelect">
+                <label for="locationSelect">Локация</label>
+                <div class="field-with-add">
+                  <select id="locationSelect"></select>
+                  <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свою локацию">+</button>
+                </div>
+                <div class="inline-add-row" hidden>
+                  <input type="text" placeholder="Новая локация">
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+                </div>
+              </div>
+              <div class="field" data-list="light" data-target="lightSelect">
+                <label for="lightSelect">Свет</label>
+                <div class="field-with-add">
+                  <select id="lightSelect"></select>
+                  <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой вариант света">+</button>
+                </div>
+                <div class="inline-add-row" hidden>
+                  <input type="text" placeholder="Новый вариант света">
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+                </div>
+              </div>
+              <div class="field" data-list="angles" data-target="angleSelect">
+                <label for="angleSelect">Ракурс</label>
+                <div class="field-with-add">
+                  <select id="angleSelect"></select>
+                  <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой ракурс">+</button>
+                </div>
+                <div class="inline-add-row" hidden>
+                  <input type="text" placeholder="Новый ракурс">
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+                </div>
+              </div>
+              <div class="field" data-list="props" data-target="propsChips">
+                <label>Реквизит</label>
+                <div class="chip-row" id="propsChips"></div>
+                <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой реквизит" style="margin-top:4px">+</button>
+                <div class="inline-add-row" hidden>
+                  <input type="text" placeholder="Новый реквизит">
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+                </div>
+              </div>
+              <label class="checkbox-row" style="margin-top:4px"><input type="checkbox" id="humanToggle"> Добавить человека в кадр (руку)</label>
+              <button type="button" class="btn-ghost btn-small" data-reset="scene" style="align-self:flex-end">Сбросить</button>
+            </div>
+          </details>
+
+          <details class="panel field-group">
+            <summary><h2>Оформление <span class="hint-inline">(необязательно)</span></h2></summary>
+            <div class="field-body">
+              <div class="field" data-list="accentColors" data-target="accentColorSelect">
+                <label for="accentColorSelect">Акцентный цвет</label>
+                <div class="field-with-add">
+                  <select id="accentColorSelect"></select>
+                  <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой цвет">+</button>
+                </div>
+                <div class="inline-add-row" hidden>
+                  <input type="text" placeholder="Новый акцентный цвет">
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                  <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+                </div>
+              </div>
+              <div class="field" id="kickerField"><label for="kickerText">Фирменный кикер</label><input id="kickerText" type="text" value="DECOR FOR A BETTER HOME"></div>
+              <div class="field" id="sloganField"><label for="sloganText">Нижний слоган</label><input id="sloganText" type="text" value="СТИЛЬ В КАЖДОЙ ДЕТАЛИ"></div>
+              <label class="checkbox-row"><input type="checkbox" id="avoidRepeatToggle" checked> Предупреждать о повторе приёма/сцены</label>
+              <button type="button" class="btn-ghost btn-small" data-reset="design" style="align-self:flex-end">Сбросить</button>
+            </div>
+          </details>
+
+          <button class="btn-primary" id="generateBtn" type="button" style="align-self:flex-start">Собрать промт</button>
+        </div>
+
+        <div class="output">
+          <div class="panel output-ticket">
+            <div class="ticket-head">
+              <span class="ticket-label">Готовый промт</span>
+              <span class="ticket-mode" id="outputModeBadge">—</span>
+            </div>
+            <div id="repeatWarningBox" class="warning-strip" hidden></div>
+            <textarea id="promptOutput" placeholder="Выберите карточку из плана и нажмите «Собрать промт»."></textarea>
+            <div class="ticket-actions">
+              <button class="btn-primary" id="copyBtn" type="button">Скопировать</button>
+              <button class="btn-ghost" id="refinePromptBtn" type="button">✦ Доработать промт с ИИ</button>
+              <button class="btn-ghost" id="saveToPlanBtn" type="button">Сохранить в карточку плана</button>
+            </div>
+            <label class="checkbox-row" style="margin:8px 0 0"><input type="checkbox" id="autoSaveToggle" checked> Автоматически сохранять промт в выбранную карточку</label>
+            <p class="ai-status" id="promptStatus" hidden></p>
+            <div class="caption-box">
+              <div class="ticket-head">
+                <span class="ticket-label" style="font-size:16px">Текст поста</span>
+                <button class="btn-ghost btn-small" id="captionBtn" type="button">✦ Написать с ИИ</button>
+              </div>
+              <textarea id="captionOutput" placeholder="Подпись к посту и хэштеги. Нажмите «Написать с ИИ» — текст сохранится в карточку плана. Можно править вручную."></textarea>
+              <div class="ticket-actions" style="margin-top:0">
+                <button class="btn-ghost btn-small" id="copyCaptionBtn" type="button">Скопировать текст</button>
+                <button class="btn-ghost btn-small" id="saveCaptionBtn" type="button">Сохранить правки</button>
+              </div>
+              <p class="ai-status" id="captionStatus" hidden></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panelPlan" hidden style="padding:0">
+      <div class="plan-toolbar">
+        <details class="field-group" open>
+          <summary><h2>Генерация нового плана</h2></summary>
+          <div class="plan-gen-row">
+            <div class="field"><label for="planCount">Постов</label><input id="planCount" type="number" min="1" max="40" value="9"></div>
+            <button class="btn-primary" id="generatePlanBtn" type="button">Сгенерировать план</button>
+            <button class="btn-ghost btn-small" id="clearPlanBtn" type="button">Очистить план</button>
+            <label class="checkbox-row" style="margin:0; flex-basis:100%"><input type="checkbox" id="aiIdeasToggle" checked> Придумать идеи для заметок с помощью ИИ (иначе — из готовых вариантов)</label>
+            <p class="hint" style="flex-basis:100%">Новые карточки получают номера №01…, а на экране подсвечиваются и прокручиваются в видимую область. Плотные типы (Hero, Карусель) чередуются с воздушными автоматически. Ниже можно настроить каждый пост отдельно.</p>
+            <p class="ai-status" id="planGenStatus" hidden style="flex-basis:100%"></p>
+          </div>
+          <div class="post-rows">
+            <div class="post-rows-head">
+              <span class="hint-inline">Настройка по постам (необязательно — пустое поле = общее значение / авто)</span>
+              <button type="button" class="btn-ghost btn-small" id="resetPostRowsBtn">Сбросить по постам</button>
+            </div>
+            <div id="postRows"></div>
+          </div>
+        </details>
+        <details class="field-group">
+          <summary><h2>Общие параметры генерации <span class="hint-inline">(необязательно)</span></h2></summary>
+          <div class="field-body">
+            <div class="field" data-list="locations" data-target="planDefLocation">
+              <label for="planDefLocation">Локация по умолчанию</label>
+              <div class="field-with-add">
+                <select id="planDefLocation"></select>
+                <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свою локацию">+</button>
+              </div>
+              <div class="inline-add-row" hidden>
+                <input type="text" placeholder="Новая локация">
+                <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+              </div>
+            </div>
+            <div class="field" data-list="light" data-target="planDefLight">
+              <label for="planDefLight">Свет по умолчанию</label>
+              <div class="field-with-add">
+                <select id="planDefLight"></select>
+                <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой вариант света">+</button>
+              </div>
+              <div class="inline-add-row" hidden>
+                <input type="text" placeholder="Новый вариант света">
+                <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+              </div>
+            </div>
+            <div class="field" data-list="angles" data-target="planDefAngle">
+              <label for="planDefAngle">Ракурс по умолчанию</label>
+              <div class="field-with-add">
+                <select id="planDefAngle"></select>
+                <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой ракурс">+</button>
+              </div>
+              <div class="inline-add-row" hidden>
+                <input type="text" placeholder="Новый ракурс">
+                <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+              </div>
+            </div>
+            <div class="field" data-list="props" data-target="planDefPropsChips">
+              <label>Реквизит по умолчанию</label>
+              <div class="chip-row" id="planDefPropsChips"></div>
+              <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой реквизит" style="margin-top:4px">+</button>
+              <div class="inline-add-row" hidden>
+                <input type="text" placeholder="Новый реквизит">
+                <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+              </div>
+            </div>
+            <label class="checkbox-row"><input type="checkbox" id="planDefHuman"> Человек в кадре по умолчанию</label>
+            <div class="field" data-list="accentColors" data-target="planDefAccent">
+              <label for="planDefAccent">Акцентный цвет по умолчанию</label>
+              <div class="field-with-add">
+                <select id="planDefAccent"></select>
+                <button type="button" class="icon-btn" data-inline-add-toggle title="Добавить свой цвет">+</button>
+              </div>
+              <div class="inline-add-row" hidden>
+                <input type="text" placeholder="Новый акцентный цвет">
+                <button type="button" class="btn-ghost btn-small" data-inline-add-confirm>Добавить</button>
+                <button type="button" class="btn-ghost btn-small" data-inline-add-cancel>Отмена</button>
+              </div>
+            </div>
+            <p class="hint">Эти значения подставятся во вкладке «Промт», когда вы выберете карточку из этой партии — их можно будет изменить перед сборкой.</p>
+            <button type="button" class="btn-ghost btn-small" data-reset="planDefaults" style="align-self:flex-end">Сбросить</button>
+          </div>
+        </details>
+        <div class="plan-add-row">
+          <select id="newSlotType"></select>
+          <input id="newSlotNote" type="text" placeholder="Добавить один слот вручную — заметка">
+          <button class="btn-ghost btn-small" id="addSlotBtn" type="button">Добавить</button>
+        </div>
+      </div>
+      <div class="plan-sort-row">
+        <label for="planSortOrder">Порядок карточек</label>
+        <select id="planSortOrder">
+          <option value="old" selected>Сначала старые</option>
+          <option value="new">Сначала новые</option>
+        </select>
+      </div>
+      <div class="plan-grid" id="planGrid"></div>
+    </section>
+
+    <section class="panel" id="panelSettings" hidden>
+      <div class="settings-grid">
+        <div class="list-editor panel" id="connPanel">
+          <h3>Подключение</h3>
+          <p class="hint">Ключи хранятся только в этом браузере, на этом устройстве, и отправляются только в Supabase и Anthropic. На каждом устройстве их нужно вставить один раз. Подробности — в SETUP.md.</p>
+          <div class="conn-grid">
+            <div>
+              <h3>Данные — Supabase</h3>
+              <div class="field"><label for="cfgSupaUrl">Project URL</label><input id="cfgSupaUrl" type="text" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false"></div>
+              <div class="field"><label for="cfgSupaKey">Ключ anon public</label><input id="cfgSupaKey" type="password" autocomplete="off"></div>
+              <button type="button" class="btn-ghost btn-small" id="cfgTestSupa" style="align-self:flex-start">Проверить</button>
+              <p class="hint" id="cfgSupaStatus" hidden></p>
+            </div>
+            <div>
+              <h3>ИИ — Anthropic</h3>
+              <div class="field"><label for="cfgAnthKey">API-ключ</label><input id="cfgAnthKey" type="password" autocomplete="off" placeholder="sk-ant-…"></div>
+              <div class="field-row">
+                <div class="field"><label for="cfgModelDefault">Основная модель</label><select id="cfgModelDefault"><option value="claude-sonnet-5">Sonnet 5</option><option value="claude-haiku-4-5-20251001">Haiku 4.5</option><option value="claude-opus-5">Opus 5</option></select></div>
+                <div class="field"><label for="cfgModelQuick">Мелкие правки</label><select id="cfgModelQuick"><option value="claude-haiku-4-5-20251001">Haiku 4.5</option><option value="claude-sonnet-5">Sonnet 5</option></select></div>
+              </div>
+              <button type="button" class="btn-ghost btn-small" id="cfgTestAnth" style="align-self:flex-start">Проверить ключ</button>
+              <p class="hint" id="cfgAnthStatus" hidden></p>
+            </div>
+          </div>
+          <button type="button" class="btn-primary btn-small" id="cfgSave" style="align-self:flex-start">Сохранить подключение</button>
+        </div>
+
+        <div class="list-editor panel" id="backupPanel">
+          <h3>Резервная копия и перенос плана</h3>
+          <p class="hint">Скачайте файл со всем планом, промтами и своими списками — или загрузите такой файл (например, plan-import.json из этой папки), чтобы заменить текущий план.</p>
+          <div class="list-add-row">
+            <button type="button" class="btn-ghost btn-small" id="exportBtn">Скачать копию</button>
+            <input type="file" id="importInput" accept="application/json,.json" style="max-width:260px">
+            <button type="button" class="btn-ghost btn-small" id="importBtn">Загрузить из файла</button>
+          </div>
+          <p class="hint" id="backupStatus" hidden></p>
+        </div>
+
+        <h2>Списки промта</h2>
+        <p class="hint">Базовые варианты фиксированы. Добавляйте свои поверх них — они появятся во всех выпадающих списках.</p>
+        <div class="list-editors" id="listEditors"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panelReview" hidden>
+      <div class="settings-grid">
+        <h2>Проверка плана</h2>
+        <p class="hint">Выберите диапазон карточек по номеру в плане (№01, №02 — как в выпадающем списке вкладки «Промт»; всегда порядок плана, независимо от переключателя «Порядок карточек» во вкладке «План»). Нейросеть оценит ритм и подбор типов, а при наличии скриншота — сравнит план с уже опубликованными постами.</p>
+
+        <div class="list-editor panel">
+          <h3>Диапазон</h3>
+          <div class="field-row">
+            <div class="field"><label for="reviewRangeFrom">От №</label><input id="reviewRangeFrom" type="number" min="1" step="1" value="1"></div>
+            <div class="field"><label for="reviewRangeTo">До №</label><input id="reviewRangeTo" type="number" min="1" step="1" value="1"></div>
+          </div>
+          <p class="hint" id="reviewRangeHint"></p>
+        </div>
+
+        <div class="list-editor panel">
+          <h3>Критика ритма и подбора карточек</h3>
+          <p class="hint">Проверит чередование плотных (Hero, Карусель) и воздушных карточек в диапазоне, разнообразие типов и даст короткие предложения по каждой карточке.</p>
+          <button class="btn-primary btn-small" id="reviewAnalyzeBtn" type="button" style="align-self:flex-start">Проверить диапазон</button>
+          <p class="hint adjust-status" id="reviewAnalyzeStatus" hidden></p>
+          <div class="plan-prompt-preview" id="reviewAnalyzeOutput" hidden></div>
+        </div>
+
+        <div class="list-editor panel" id="reviewImageCard">
+          <h3>Сравнение скриншота публикации с планом и промтом</h3>
+          <div class="seg" role="group" aria-label="Что сравнивать">
+            <button type="button" data-review-mode="card" aria-pressed="true">Одна карточка</button>
+            <button type="button" data-review-mode="range" aria-pressed="false">Диапазон (скрин ленты)</button>
+          </div>
+          <div class="field" id="reviewCardField"><label for="reviewCardSelect">Карточка плана</label><select id="reviewCardSelect"></select></div>
+          <p class="hint" id="reviewCardInfo"></p>
+          <p class="hint" id="reviewImageHint">Приложите скриншот опубликованного поста — нейросеть сравнит его с заметкой, типом и промтом карточки и подскажет, что поправить в промте.</p>
+          <div class="field"><label for="reviewImageInput">Файл скриншота (PNG, JPEG, WebP)</label><input type="file" id="reviewImageInput" accept="image/png,image/jpeg,image/webp,image/gif"></div>
+          <button class="btn-primary btn-small" id="reviewCompareBtn" type="button" style="align-self:flex-start">Сравнить со скриншотом</button>
+          <p class="hint adjust-status" id="reviewCompareStatus" hidden></p>
+          <div class="plan-prompt-preview" id="reviewCompareOutput" hidden></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align:center; font-size:11px; color:var(--ink-faint); padding-top:4px">web 2026-09-24-a</footer>
+</div>
+
+<script>
+/* Слой подключения: заменяет window.claude из claude.ai.
+   db     -> Supabase (таблица kv) либо localStorage, если Supabase не настроен
+   sample -> Anthropic Messages API напрямую из браузера (ключ пользователя) */
+(function(){
+  "use strict";
+  var CFG_KEY = "atelier.cfg.v1";
+  var DEFAULTS = {supaUrl:"", supaKey:"", anthropicKey:"", modelDefault:"claude-sonnet-5", modelQuick:"claude-haiku-4-5-20251001"};
+
+  function getCfg(){
+    try{ return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(CFG_KEY) || "{}")); }
+    catch(e){ return Object.assign({}, DEFAULTS); }
+  }
+  function setCfg(patch){
+    var c = Object.assign(getCfg(), patch);
+    try{ localStorage.setItem(CFG_KEY, JSON.stringify(c)); }catch(e){}
+    return c;
+  }
+  function cloud(){ var c = getCfg(); return !!(c.supaUrl && c.supaKey); }
+  function err(code, message){ return {code: code, message: message || code}; }
+  function clone(x){ return x === undefined ? undefined : JSON.parse(JSON.stringify(x)); }
+
+  // ---------- local store (fallback + read cache) ----------
+  var LOCAL = "atelier.kv.", MIRROR = "atelier.mirror.";
+  function lsGet(k){ try{ var v = localStorage.getItem(k); return v === null ? undefined : JSON.parse(v); }catch(e){ return undefined; } }
+  function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+  function lsKeys(prefix){
+    var out = [];
+    try{ for (var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if (k.indexOf(prefix) === 0) out.push(k.slice(prefix.length)); } }catch(e){}
+    return out;
+  }
+
+  // ---------- Supabase (PostgREST, table kv(key text pk, value jsonb, updated_at)) ----------
+  function base(){ return getCfg().supaUrl.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "").replace(/\/+$/, "") + "/rest/v1/kv"; }
+  function hdr(extra){
+    var c = getCfg();
+    return Object.assign({apikey: c.supaKey, Authorization: "Bearer " + c.supaKey, "Content-Type": "application/json"}, extra || {});
+  }
+  async function supaFetch(url, init){
+    var r;
+    try{ r = await fetch(url, init); }catch(e){ throw err("network", "нет связи с Supabase"); }
+    if (!r.ok){
+      var t = ""; try{ t = await r.text(); }catch(e){}
+      if (r.status === 404 || /relation .* does not exist|PGRST205/.test(t)) throw err("no_table", "таблица kv не найдена — выполните SQL из SETUP.md");
+      if (r.status === 401 || r.status === 403) throw err("supa_auth", "Supabase отклонил ключ");
+      throw err("supa_error", "Supabase " + r.status + " " + t.slice(0, 120));
+    }
+    return r;
+  }
+  async function cloudGet(key){
+    var r = await supaFetch(base() + "?select=value&key=eq." + encodeURIComponent(key), {headers: hdr()});
+    var rows = await r.json();
+    return rows.length ? rows[0].value : undefined;
+  }
+  async function cloudSet(key, value){
+    await supaFetch(base(), {method: "POST", headers: hdr({Prefer: "resolution=merge-duplicates,return=minimal"}),
+      body: JSON.stringify({key: key, value: value, updated_at: new Date().toISOString()})});
+  }
+  async function cloudList(prefix){
+    var r = await supaFetch(base() + "?select=key,value&key=like." + encodeURIComponent(prefix + "/") + "*", {headers: hdr()});
+    return (await r.json()).map(function(row){ return {key: row.key, value: row.value}; });
+  }
+
+  // ---------- unified doc/collection API (same shape the app already uses) ----------
+  window.__atelierStale = false;
+  async function kvGet(path){
+    if (!cloud()) return lsGet(LOCAL + path);
+    try{
+      var v = await cloudGet(path);
+      window.__atelierStale = false;
+      if (v !== undefined) lsSet(MIRROR + path, v);
+      return v;
+    }catch(e){
+      var m = lsGet(MIRROR + path);
+      if (m !== undefined && e.code === "network"){ window.__atelierStale = true; return m; }
+      throw e;
+    }
+  }
+  async function kvSet(path, value){
+    if (!cloud()){ if (!lsSet(LOCAL + path, value)) throw err("storage_full", "локальное хранилище заполнено"); return; }
+    await cloudSet(path, value);
+    lsSet(MIRROR + path, value);
+  }
+  async function kvList(prefix){
+    if (!cloud()) return lsKeys(LOCAL + prefix + "/").map(function(k){ return {key: prefix + "/" + k, value: lsGet(LOCAL + prefix + "/" + k)}; });
+    try{
+      var rows = await cloudList(prefix);
+      lsSet(MIRROR + "list." + prefix, rows);
+      return rows;
+    }catch(e){
+      var m = lsGet(MIRROR + "list." + prefix);
+      if (m !== undefined && e.code === "network"){ window.__atelierStale = true; return m; }
+      throw e;
+    }
+  }
+  function docRef(path){
+    return {
+      id: path.split("/").pop(), path: path,
+      get: async function(){
+        var v = await kvGet(path);
+        return {id: path.split("/").pop(), exists: v !== undefined, data: function(){ return clone(v); }};
+      },
+      set: async function(d){ await kvSet(path, clone(d)); }
+    };
+  }
+  var dbApi = {
+    doc: docRef,
+    collection: function(path){
+      return {
+        path: path,
+        doc: function(id){ return docRef(path + "/" + id); },
+        get: async function(){
+          var rows = await kvList(path);
+          var docs = rows.map(function(r){ return {id: r.key.split("/").pop(), exists: true, data: function(){ return clone(r.value); }}; });
+          return {docs: docs, size: docs.length, empty: !docs.length};
+        }
+      };
+    }
+  };
+
+  // ---------- Anthropic ----------
+  function b64(file){
+    return new Promise(function(res, rej){
+      var fr = new FileReader();
+      fr.onload = function(){ res(String(fr.result).split(",")[1] || ""); };
+      fr.onerror = function(){ rej(err("image_rejected")); };
+      fr.readAsDataURL(file);
+    });
+  }
+  async function callAnthropic(input, opts){
+    opts = opts || {};
+    var c = getCfg();
+    if (!c.anthropicKey) throw err("no_key");
+    var messages;
+    if (typeof input === "string") messages = [{role: "user", content: input}];
+    else messages = input.map(function(m){ return {role: m.role, content: m.content}; });
+    if (opts.images){
+      var files = Array.isArray(opts.images) ? opts.images : [opts.images];
+      var blocks = [];
+      for (var i = 0; i < files.length; i++){
+        blocks.push({type: "image", source: {type: "base64", media_type: files[i].type, data: await b64(files[i])}});
+      }
+      var last = messages[messages.length - 1];
+      messages[messages.length - 1] = {role: "user", content: blocks.concat([{type: "text", text: last.content}])};
+    }
+    var model = opts.modelTier === "quick" ? c.modelQuick : c.modelDefault;
+    var r;
+    try{
+      r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {"x-api-key": c.anthropicKey, "anthropic-version": "2023-06-01",
+                  "anthropic-dangerous-direct-browser-access": "true", "content-type": "application/json"},
+        body: JSON.stringify({model: model, max_tokens: opts.maxTokens || 4096, messages: messages}),
+        signal: opts.signal
+      });
+    }catch(e){
+      if (e && e.name === "AbortError") throw err("cancelled");
+      throw err("network", "нет связи с Anthropic");
+    }
+    if (!r.ok){
+      var t = ""; try{ var j0 = await r.json(); t = (j0.error && j0.error.message) || ""; }catch(e){}
+      if (r.status === 401 || r.status === 403) throw err("invalid_key", t);
+      if (r.status === 429) throw err("rate_limited", t);
+      if (r.status === 413) throw err("prompt_too_large", t);
+      if (r.status === 400 && /credit balance/i.test(t)) throw err("no_credits", t);
+      if (r.status === 404) throw err("bad_model", t);
+      if (r.status === 400) throw err("invalid_request", t);
+      throw err("upstream_error", t);
+    }
+    var j = await r.json();
+    var text = (j.content || []).filter(function(b){ return b.type === "text"; }).map(function(b){ return b.text; }).join("");
+    if (!text.trim()) throw err("empty_completion");
+    return {text: text, truncated: j.stop_reason === "max_tokens", modelTierApplied: opts.modelTier === "quick" ? "quick" : "default", model: model};
+  }
+  async function sample(input, opts){
+    var res = await callAnthropic(input, opts);
+    if (opts && typeof opts.onText === "function"){ try{ opts.onText({text: res.text, delta: res.text}); }catch(e){} }
+    return res;
+  }
+  function parseJsonTolerant(text){
+    try{ return JSON.parse(text); }catch(e){}
+    var fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fence){ try{ return JSON.parse(fence[1]); }catch(e){} }
+    var a = text.search(/[\[{]/), closeObj = text.lastIndexOf("}"), closeArr = text.lastIndexOf("]");
+    var end = Math.max(closeObj, closeArr);
+    if (a >= 0 && end > a){ try{ return JSON.parse(text.slice(a, end + 1)); }catch(e){} }
+    throw new Error("parse");
+  }
+  sample.json = async function(input, opts){
+    var res = await callAnthropic(input, opts);
+    try{ return parseJsonTolerant(res.text); }
+    catch(e){ var er = err("invalid_json", "ответ не разобран"); er.text = res.text; throw er; }
+  };
+  sample.limits = async function(){
+    return {maxPromptBytes: 200000, images: {maxCount: 1, maxInputBytes: 5 * 1024 * 1024, mediaTypes: ["image/png", "image/jpeg", "image/webp", "image/gif"]}};
+  };
+
+  window.claude = {use: async function(name){ if (name === "db") return dbApi; if (name === "sample") return sample; return null; }};
+
+  // ---------- helpers for the Settings panel ----------
+  window.__atelier = {
+    getCfg: getCfg, setCfg: setCfg, cloud: cloud,
+    testSupabase: async function(){
+      if (!cloud()) throw err("no_supa", "адрес и ключ Supabase не заданы");
+      await cloudGet("__ping__");
+      return "подключено, таблица kv найдена";
+    },
+    testAnthropic: async function(){
+      var r = await callAnthropic("Ответь одним словом: ок", {modelTier: "quick", maxTokens: 8});
+      return "ключ принят (" + r.model + ")";
+    }
+  };
+})();
+
+</script>
+<script>
+(function(){
+  "use strict";
+
+  function showJsError(msg){
+    try{
+      var b = document.getElementById("jsErrorBanner");
+      if (!b) return;
+      b.hidden = false;
+      b.textContent = "Ошибка на странице: " + msg + " — сделайте полное обновление страницы (Ctrl/Cmd+Shift+R) и повторите.";
+    }catch(e){}
+  }
+  window.addEventListener("error", function(e){
+    showJsError((e && e.message) || "неизвестная ошибка");
+  });
+  window.addEventListener("unhandledrejection", function(e){
+    var r = e && e.reason;
+    var msg = (r && (r.message || r.code)) || String(r);
+    showJsError("промис отклонён — " + msg);
+  });
+
+  var BASE = {
+    compositions: [
+      {label:"A · Full-bleed hero", desc:"Товар на всю карточку, оversize-заголовок частично срезан краем кадра или наложен на фото."},
+      {label:"B · Асимметричный сплит", desc:"Узкая текстовая колонка (~30%) сбоку, фотография на bleed по остальной площади."},
+      {label:"C · Овальная виньетка", desc:"Товар в овальной/круглой виньетке на чистом цветном поле, инфоблоки лентой снизу."},
+      {label:"D · Диагональная композиция", desc:"Товар слегка развёрнут/приподнят с мягкой тенью, кикер-текст изогнут вокруг."},
+      {label:"E · Двухколоночная с буквицей", desc:"Классическая журнальная вёрстка с буквицей у первой строки заголовка."},
+      {label:"F · Коллаж внахлёст", desc:"Несколько фото товара разного масштаба перекрывают друг друга, одно большое поле воздуха уравновешивает плотность."}
+    ],
+    locations: ["гостиная","спальня","кухня","рабочий стол","подоконник","прихожая"],
+    light: ["мягкое утреннее","тёплый вечерний свет лампы","пасмурное рассеянное","лёгкий контровой"],
+    angles: ["фронтальный центр","top-down flatlay","низкий ракурс","крупный план сбоку"],
+    props: ["книги","текстиль","керамика","сухоцветы / живые цветы","свеча","поднос"],
+    accentColors: ["терракотовый","оливковый","графитовый","карамельный","пыльно-розовый"]
+  };
+
+  var PILLARS = {
+    HERO:     {label:"Hero",     density:"dense"},
+    MOOD:     {label:"Mood",     density:"air"},
+    MACRO:    {label:"Деталь",   density:"air"},
+    CAROUSEL: {label:"Карусель", density:"dense"},
+    QUOTE:    {label:"Цитата",   density:"air"},
+    REELS:    {label:"Reels",    density:"air"}
+  };
+
+  var DEFAULT_NOTES = {
+    HERO:"Новая hero-карточка — впишите идею",
+    MOOD:"Атмосферный кадр без текста",
+    MACRO:"Крупный план детали/фактуры",
+    CAROUSEL:"Карусель — распаковка / деталь / интерьер / цитата",
+    QUOTE:"Текстовый слайд с цитатой",
+    REELS:"Обложка-тизер видео"
+  };
+
+  // Several ready ideas per type, so a fresh plan does not look identical to
+  // the previous one when AI ideas are off or unavailable.
+  var NOTE_VARIANTS = {
+    HERO:["Товар крупно на светлом поле, полный инфоблок","Товар в асимметричном сплите с текстовой колонкой","Овальная виньетка, инфоблоки лентой снизу","Диагональная подача с мягкой тенью","Журнальный разворот с буквицей","Коллаж внахлёст из трёх ракурсов товара"],
+    MOOD:["Товар в гостиной, тёплый вечерний свет, без текста","Утренний подоконник, мягкие тени","Пасмурный рассеянный свет, спокойная спальня","Товар на полке среди книг и керамики","Стол после завтрака, товар как часть быта","Контровой свет, силуэт товара в интерьере"],
+    MACRO:["Крупный план фактуры материала","Деталь шва / края / соединения","Игра света на поверхности товара","Узор или рельеф крупно","Фурнитура или мелкая декоративная деталь"],
+    CAROUSEL:["Распаковка → деталь → интерьер → цитата","5 способов использовать товар в доме","До / после: интерьер без товара и с ним","Товар в трёх комнатах + итоговый слайд","Как ухаживать за товаром — пошагово"],
+    QUOTE:["Цитата о доме и уюте","Мысль о деталях, которые создают стиль","Короткая фраза о медленной жизни","Цитата о том, как вещи рассказывают историю"],
+    REELS:["Видео 360° вокруг товара — обложка","Процесс расстановки / сервировки — обложка","Руки распаковывают товар — стоп-кадр","Смена света в течение дня — тизер"]
+  };
+
+  function pillarOf(type){ return PILLARS[type] || {label: String(type || "?"), density: "air"}; }
+
+  var SEED_SLOTS = [
+    {pillarType:"HERO",     note:"Товар крупно, полный инфоблок, мягкое утреннее освещение"},
+    {pillarType:"MOOD",     note:"Тот же товар в интерьере без текста, тёплый вечерний свет"},
+    {pillarType:"HERO",     note:"Другой ракурс товара, овальная виньетка, top-down"},
+    {pillarType:"MACRO",    note:"Крупный план фактуры и стёжки"},
+    {pillarType:"CAROUSEL", note:"Распаковка → деталь → интерьер → цитата бренда"},
+    {pillarType:"QUOTE",    note:"Цитата о доме, без товара"},
+    {pillarType:"HERO",     note:"Диагональная композиция, рука расставляет цветы"},
+    {pillarType:"MOOD",     note:"Пасмурный рассеянный свет, другая локация"},
+    {pillarType:"REELS",    note:"Видео 360° / процесс расстановки — обложка-тизер"}
+  ].map(function(s){ return Object.assign({id:cryptoId(), linkedPromptId:null, defaults:null, createdAt:new Date().toISOString()}, s); });
+
+  var state = {
+    db:null, online:false, sample:null, imageLimits:null,
+    prompts:[], slots:[],
+    custom:{compositions:[], locations:[], light:[], angles:[], props:[], accentColors:[]},
+    sortReversed:true // view-only preference (План tab render order) -- never persisted to db
+  };
+  var selectedProps = new Set();
+  var planDefSelectedProps = new Set();
+
+  function cryptoId(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "id-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+  function escapeHtml(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function el(id){ return document.getElementById(id); }
+  function allList(key){ return BASE[key].concat(state.custom[key]); }
+  function optionsHtml(values, blankLabel){
+    var out = blankLabel !== undefined ? '<option value="">' + escapeHtml(blankLabel) + "</option>" : "";
+    return out + values.map(function(v){
+      var val = typeof v === "object" ? v.label : v;
+      return '<option value="' + escapeHtml(val) + '">' + escapeHtml(val) + "</option>";
+    }).join("");
+  }
+
+  // ---------- tabs ----------
+  function initTabs(){
+    var btns = document.querySelectorAll(".tab");
+    btns.forEach(function(btn){
+      btn.addEventListener("click", function(){
+        btns.forEach(function(b){ b.setAttribute("aria-selected","false"); });
+        btn.setAttribute("aria-selected","true");
+        el("panelGenerator").hidden = btn.dataset.tab !== "generator";
+        el("panelPlan").hidden = btn.dataset.tab !== "plan";
+        el("panelSettings").hidden = btn.dataset.tab !== "settings";
+        el("panelReview").hidden = btn.dataset.tab !== "review";
+        if (btn.dataset.tab === "generator") renderCardSelect();
+        if (btn.dataset.tab === "plan") renderPlan();
+        if (btn.dataset.tab === "settings") renderSettings();
+        if (btn.dataset.tab === "review") renderReviewPanel();
+      });
+    });
+  }
+
+  // ---------- generator: static lists ----------
+  function renderPropsChips(){
+    el("propsChips").innerHTML = allList("props").map(function(p){
+      var on = selectedProps.has(p);
+      return '<button type="button" class="chip" data-prop="' + escapeHtml(p) + '" aria-pressed="' + on + '">' + escapeHtml(p) + "</button>";
+    }).join("");
+  }
+  function renderPlanDefPropsChips(){
+    el("planDefPropsChips").innerHTML = allList("props").map(function(p){
+      var on = planDefSelectedProps.has(p);
+      return '<button type="button" class="chip" data-plan-def-prop="' + escapeHtml(p) + '" aria-pressed="' + on + '">' + escapeHtml(p) + "</button>";
+    }).join("");
+  }
+
+  function renderStaticLists(){
+    el("accentColorSelect").innerHTML = optionsHtml(allList("accentColors"), "— не указано —");
+    el("locationSelect").innerHTML = optionsHtml(allList("locations"), "— не указано —");
+    el("lightSelect").innerHTML = optionsHtml(allList("light"), "— не указано —");
+    el("angleSelect").innerHTML = optionsHtml(allList("angles"), "— не указано —");
+
+    el("planDefAccent").innerHTML = optionsHtml(allList("accentColors"), "— не указано —");
+    el("planDefLocation").innerHTML = optionsHtml(allList("locations"), "— не указано —");
+    el("planDefLight").innerHTML = optionsHtml(allList("light"), "— не указано —");
+    el("planDefAngle").innerHTML = optionsHtml(allList("angles"), "— не указано —");
+
+    var comps = allList("compositions");
+    el("compositionSelect").innerHTML = optionsHtml(comps, "— не указано (решает нейросеть) —") + '<option value="__random__">Случайный выбор</option>';
+    updateCompositionHint();
+
+    el("modeOverrideSelect").innerHTML = '<option value="">— как в плане —</option>' + Object.keys(PILLARS).map(function(k){
+      return '<option value="' + k + '">' + PILLARS[k].label + "</option>";
+    }).join("");
+
+    renderPropsChips();
+    renderPlanDefPropsChips();
+
+    el("newSlotType").innerHTML = Object.keys(PILLARS).map(function(k){
+      return '<option value="' + k + '">' + PILLARS[k].label + "</option>";
+    }).join("");
+    renderPostRows();
+  }
+
+  function updateCompositionHint(){
+    var v = el("compositionSelect").value;
+    if (v === "__random__"){ el("compositionHint").textContent = "Приём будет выбран случайно в момент сборки промта."; return; }
+    if (v === ""){ el("compositionHint").textContent = "Нейросеть сама подберёт приём, ориентируясь на товар, и не будет повторять прошлый hero-приём."; return; }
+    var found = allList("compositions").find(function(c){ return c.label === v; });
+    el("compositionHint").textContent = found ? found.desc : "";
+  }
+
+  // ---------- generator: card-from-plan select ----------
+  function renderCardSelect(){
+    var sel = el("cardSelect");
+    if (!state.slots.length){
+      sel.innerHTML = '<option value="">План пуст</option>';
+      el("cardContext").innerHTML = '<span class="empty">Сначала создайте план во вкладке «План».</span>';
+      el("generateBtn").disabled = true;
+      onCardChange();
+      return;
+    }
+    el("generateBtn").disabled = false;
+    var current = sel.value;
+    sel.innerHTML = state.slots.map(function(s, i){
+      var noteShort = (s.note || "").slice(0, 40);
+      return '<option value="' + s.id + '">№' + String(i+1).padStart(2,"0") + " · " + pillarOf(s.pillarType).label + (s.linkedPromptId ? " ✓" : "") + " — " + escapeHtml(noteShort) + "</option>";
+    }).join("");
+    if (current && state.slots.some(function(s){ return s.id === current; })) sel.value = current;
+    onCardChange();
+  }
+
+  function currentSlot(){
+    var id = el("cardSelect").value;
+    return state.slots.find(function(s){ return s.id === id; }) || null;
+  }
+
+  function effectiveType(){
+    var override = el("modeOverrideSelect").value;
+    if (override) return override;
+    var slot = currentSlot();
+    return slot && PILLARS[slot.pillarType] ? slot.pillarType : "HERO";
+  }
+
+  function linkedPromptOf(slot){
+    if (!slot || !slot.linkedPromptId) return null;
+    return state.prompts.find(function(p){ return p.id === slot.linkedPromptId; }) || null;
+  }
+
+  function applyDefaults(defaults){
+    defaults = defaults || {};
+    el("locationSelect").value = defaults.location || "";
+    el("lightSelect").value = defaults.light || "";
+    el("angleSelect").value = defaults.angle || "";
+    el("accentColorSelect").value = defaults.accentColor || "";
+    el("humanToggle").checked = !!defaults.human;
+    selectedProps = new Set(defaults.props || []);
+    renderPropsChips();
+  }
+
+  function updateEffectiveUI(){
+    var type = effectiveType();
+    var pillar = pillarOf(type);
+    var isHero = type === "HERO";
+    el("compositionCard").hidden = !isHero;
+    el("kickerField").hidden = !isHero;
+    el("sloganField").hidden = !isHero;
+    el("outputModeBadge").textContent = pillar.label;
+    el("outputModeBadge").className = "ticket-mode" + (pillar.density === "air" ? " air" : "");
+  }
+
+  function onCardChange(){
+    var slot = currentSlot();
+    var ctx = el("cardContext");
+    el("modeOverrideSelect").value = "";
+    // A prompt built for the previous card must never be saved into this one.
+    var sameCard = !!slot && shownSlotId === slot.id;
+    shownSlotId = slot ? slot.id : null;
+    if (!sameCard){
+      lastBuilt = null;
+      el("repeatWarningBox").hidden = true;
+      el("promptStatus").hidden = true;
+      el("captionStatus").hidden = true;
+      var linked = linkedPromptOf(slot);
+      el("promptOutput").value = linked ? linked.text : "";
+      el("captionOutput").value = (slot && slot.caption) || "";
+    }
+    if (!slot){
+      ctx.innerHTML = '<span class="empty">Карточка не выбрана.</span>';
+      applyDefaults(null);
+      updateEffectiveUI();
+      return;
+    }
+    var pillar = pillarOf(slot.pillarType);
+    ctx.innerHTML = '<span class="badge badge-' + pillar.density + '">' + escapeHtml(pillar.label) + '</span><span>' + (escapeHtml(slot.note) || "без заметки") + "</span>"
+      + '<span class="hint">' + (slot.linkedPromptId ? "✓ Промт сохранён в карточке — показан справа." : "Промта в карточке пока нет.") + (slot.caption ? " ✓ Текст поста есть." : "") + "</span>";
+    if (!sameCard) applyDefaults(slot.defaults);
+    updateEffectiveUI();
+  }
+
+  // ---------- prompt assembly ----------
+  var TYPE_BODY = {
+    HERO: function(f){
+      var L = [];
+      L.push("РЕЖИМ: HERO — полная карточка с заголовком, преимуществами, размерами и доп. кадрами.");
+      L.push("— Типографика: тонкий элегантный шрифт (кикер) + крупный шрифт с засечками (главное слово).");
+      L.push("— Иконография преимуществ: тонкая линия, минимализм, один акцентный цвет.");
+      if (f.kicker) L.push("— Фирменный кикер-текст: «" + f.kicker + "» — положение и ориентация свободные.");
+      L.push("");
+      if (f.composition){
+        L.push("════════════════════════");
+        L.push("КОМПОЗИЦИОННЫЙ ПРИЁМ");
+        L.push("════════════════════════");
+        L.push(f.composition.label + ": " + f.composition.desc);
+      } else {
+        L.push("Композиционный приём выбери самостоятельно, ориентируясь на форму и характер товара, и не повторяй приём с прошлой hero-карточки серии.");
+      }
+      L.push("");
+      L.push("════════════════════════");
+      L.push("АНАЛИЗ ТОВАРА");
+      L.push("════════════════════════");
+      if (f.productName || f.category){
+        L.push("Товар: «" + (f.productName || "[уточни по фото]") + "»" + (f.category ? " — " + f.category : "") + ". Остальные визуальные характеристики (материал, фактуру, цвет) определи по фотографии.");
+      } else {
+        L.push("Проанализируй фотографию и определи название, категорию, материал, форму, цвет и назначение товара. Не придумывай свойства, которые невозможно определить визуально.");
+      }
+      L.push("");
+      if (f.benefits && f.benefits.length){
+        L.push("Преимущества:");
+        f.benefits.forEach(function(b,i){ L.push((i+1) + ". «" + b + "»"); });
+      } else {
+        L.push("Преимущества: определи автоматически по фотографии — три подтверждаемых визуально преимущества. Не используй неподтверждённые заявления вроде «ручная работа» или «натуральный материал».");
+      }
+      L.push("");
+      L.push("════════════════════════");
+      L.push("РАЗМЕРЫ (не путать оси)");
+      L.push("════════════════════════");
+      L.push("Высота — " + (f.height || "[ВЫСОТА]") + " см");
+      L.push("Ширина — " + (f.width || "[ШИРИНА]") + " см");
+      L.push("Глубина — " + (f.depth || "[ГЛУБИНА]") + " см");
+      L.push("Подай размерными стрелками, встроенными в композицию естественно — рядом с товаром, на силуэте или в компактной врезке.");
+      L.push("");
+      if (f.slogan){
+        L.push("════════════════════════");
+        L.push("НИЖНИЙ СЛОГАН");
+        L.push("════════════════════════");
+        L.push("«" + f.slogan + "»");
+      }
+      return L.join("\n");
+    },
+    MOOD: function(){
+      return "РЕЖИМ: MOOD — та же цветовая и световая ДНК серии, но БЕЗ единого текстового элемента, без плашек и иконок: чистая атмосферная интерьерная фотография товара. Весь информационный текст уходит в подпись к посту, а не на изображение.";
+    },
+    MACRO: function(){
+      return "РЕЖИМ: ДЕТАЛЬ — макросъёмка товара крупным планом: материал, фактура, шов, узор или самая интересная декоративная деталь. Без текста и интерфейсных элементов на изображении. Резкость и свет должны подчёркивать реальную текстуру поверхности.";
+    },
+    CAROUSEL: function(){
+      var L = [];
+      L.push("РЕЖИМ: КАРУСЕЛЬ — сгенерируй как последовательность из 4 отдельных изображений (по одному запросу на слайд в ChatGPT), объединённых общей ДНК серии:");
+      L.push("1. Распаковка/первое появление товара в кадре.");
+      L.push("2. Макро-деталь материала или фактуры.");
+      L.push("3. Товар в интерьерном использовании.");
+      L.push("4. Текстовый слайд-цитата о доме и стиле, без товара, фирменной типографикой.");
+      L.push("Каждый слайд — без текста, кроме слайда 4, если явно не указано иное. Все слайды должны читаться как один визуальный рассказ, без повторов кадра.");
+      return L.join("\n");
+    },
+    QUOTE: function(){
+      return "РЕЖИМ: ЦИТАТА — текстовый слайд без товара. Придумай короткую (до 12 слов) цитату или мысль о доме и стиле на русском языке, в тоне бренда. Оформи фирменной типографикой (тонкий шрифт + шрифт с засечками), на фоне из тёплой ДНК-палитры серии, без фотографии товара.";
+    },
+    REELS: function(){
+      return "РЕЖИМ: REELS — статичная обложка-тизер для видео: товар в динамичной, слегка кинематографичной сцене (можно с лёгким намёком на движение или мягким размытием края кадра, в духе стоп-кадра из видео). Минимум текста — не более одной короткой фирменной пометки.";
+    }
+  };
+
+  function buildPromptText(pillarType, f){
+    var isHero = pillarType === "HERO";
+    var needsProduct = pillarType !== "QUOTE";
+    var propsText = f.props.length ? f.props.join(", ") : "подбери реквизит самостоятельно в рамках фирменного пула материалов";
+    var humanText = f.human
+      ? "Добавь руку, которая расставляет, поправляет или держит товар в кадре — для ощущения жизни и масштаба."
+      : "Человек в кадре не нужен.";
+    var accentText = f.accentColor || "выбери самостоятельно, в рамках тёплой молочно-бежево-коричневой палитры";
+    var locationText = f.location || "выбери самостоятельно, подходящую под характер товара";
+    var lightText = f.light || "выбери самостоятельно, в рамках тёплой ДНК серии";
+    var angleText = f.angle || "выбери самостоятельно";
+    var titleName = f.productName || f.note || ("карточка №" + f.index);
+
+    var L = [];
+    L.push("Создай кадр для Instagram-карточки «" + titleName + "» (карточка №" + f.index + " плана), в вертикальном формате 4:5, 1080 × 1350 px, в стилистике modern editorial (Vogue / Elle Decor / Kinfolk): фирменный стиль серии узнаваем, но карточка — отдельный, непохожий на предыдущие «разворот журнала».");
+    L.push("");
+    if (needsProduct){
+      L.push("Используй:");
+      L.push("1. Первое изображение — фотография товара.");
+      L.push("2. Второе изображение — референс ТОЛЬКО стиля (цвет, свет, типографика, плотность деталей), не композиции.");
+      L.push("");
+    }
+    L.push("════════════════════════");
+    L.push(TYPE_BODY[pillarType](f));
+    L.push("════════════════════════");
+    L.push("");
+    L.push("════════════════════════");
+    L.push("ДНК СЕРИИ (неизменно)");
+    L.push("════════════════════════");
+    L.push("— Палитра: тёплая молочно-бежево-коричневая база + акцентная нота: " + accentText + ".");
+    L.push("— Свет: мягкий естественный, реалистичные тени, фотореализм, editorial product photography.");
+    L.push("");
+    L.push("════════════════════════");
+    L.push("СЦЕНА И АТМОСФЕРА");
+    L.push("════════════════════════");
+    L.push("— Локация: " + locationText + ".");
+    L.push("— Свет/настроение: " + lightText + ".");
+    L.push("— Ракурс: " + angleText + ".");
+    if (needsProduct){
+      L.push("— Реквизит: " + propsText + ".");
+      L.push("— " + humanText);
+    }
+    L.push("");
+    if (f.repeatWarning){
+      L.push("════════════════════════");
+      L.push("ВАЖНО — ИЗБЕГАТЬ ПОВТОРА");
+      L.push("════════════════════════");
+      L.push(f.repeatWarning);
+      L.push("");
+    }
+    L.push("════════════════════════");
+    L.push("ЗАПРЕЩЕНО ПОВТОРЯТЬ ОТ КАРТОЧКИ К КАРТОЧКЕ");
+    L.push("════════════════════════");
+    L.push("Положение блоков, размер/форму инсетов, объём свободного пространства, локацию, свет, ракурс, реквизит, композиционный приём.");
+    L.push("");
+    if (needsProduct){
+      L.push("════════════════════════");
+      L.push("ТОВАР — без искажений");
+      L.push("════════════════════════");
+      L.push("Точно сохрани реальную форму, пропорции, цвет, материал, фактуру, узор, конструкцию и существующие детали товара. Не добавляй элементы, которых нет на фото. Не копируй логотипы и узоры с референса.");
+      L.push("");
+    }
+    L.push("════════════════════════");
+    L.push("ФИНАЛЬНЫЕ ТРЕБОВАНИЯ");
+    L.push("════════════════════════");
+    L.push("— Текст на русском, без ошибок, без дублей.");
+    if (needsProduct) L.push("— Товар, заголовок, иконки, размерные стрелки не обрезаны.");
+    L.push("— Безопасные отступы под публикацию.");
+    L.push("— Не воспроизводи референс пиксель-в-пиксель.");
+    L.push("— Результат — часть одной премиальной серии, но с собственной индивидуальностью.");
+    return L.join("\n");
+  }
+
+  function checkRepeat(pillarType, compositionLabel, location, angle){
+    var prev = state.prompts.filter(function(p){ return p.pillarType === pillarType; })
+      .sort(function(a,b){ return (b.createdAt||"").localeCompare(a.createdAt||""); })[0];
+    if (!prev) return null;
+    var matches = [];
+    if (pillarType === "HERO" && compositionLabel && prev.compositionLabel === compositionLabel) matches.push('приём «' + compositionLabel + '»');
+    if (location && prev.location === location) matches.push('локация «' + location + '»');
+    if (angle && prev.angle === angle) matches.push('ракурс «' + angle + '»');
+    if (!matches.length) return null;
+    return "Повторяются как в прошлый раз того же типа: " + matches.join(", ") + ". Рекомендуем выбрать другой вариант.";
+  }
+
+  var lastBuilt = null;
+  var shownSlotId = null;
+
+  async function onGenerate(){
+    buildCurrentPrompt();
+    if (lastBuilt && el("autoSaveToggle").checked) await savePromptToSlot(true);
+  }
+
+  function buildCurrentPrompt(){
+    var slot = currentSlot();
+    if (!slot) return;
+    var pillarType = effectiveType();
+    var isHero = pillarType === "HERO";
+    var compList = allList("compositions");
+    var compValue = el("compositionSelect").value;
+    var composition = null;
+    if (isHero && compValue){
+      composition = compValue === "__random__"
+        ? compList[Math.floor(Math.random()*compList.length)]
+        : compList.find(function(c){ return c.label === compValue; }) || null;
+    }
+    var location = el("locationSelect").value || null;
+    var light = el("lightSelect").value || null;
+    var angle = el("angleSelect").value || null;
+    var accentColor = el("accentColorSelect").value || null;
+
+    var repeatWarning = null;
+    if (el("avoidRepeatToggle").checked){
+      repeatWarning = checkRepeat(pillarType, composition ? composition.label : null, location, angle);
+    }
+
+    var benefits = [el("productBenefit1").value, el("productBenefit2").value, el("productBenefit3").value].map(function(s){return s.trim();}).filter(Boolean);
+
+    var fields = {
+      index: state.slots.indexOf(slot) + 1,
+      note: slot.note,
+      productName: el("productName").value.trim(),
+      category: el("productCategory").value.trim(),
+      height: el("productHeight").value,
+      width: el("productWidth").value,
+      depth: el("productDepth").value,
+      benefits: benefits,
+      composition: composition,
+      location: location, light: light, angle: angle,
+      props: Array.from(selectedProps),
+      human: el("humanToggle").checked,
+      accentColor: accentColor,
+      kicker: isHero ? el("kickerText").value.trim() : "",
+      slogan: isHero ? el("sloganText").value.trim() : "",
+      repeatWarning: repeatWarning
+    };
+
+    var text = buildPromptText(pillarType, fields);
+    el("promptOutput").value = text;
+    updateEffectiveUI();
+
+    var warnBox = el("repeatWarningBox");
+    if (repeatWarning){ warnBox.hidden = false; warnBox.textContent = repeatWarning; }
+    else { warnBox.hidden = true; warnBox.textContent = ""; }
+
+    lastBuilt = {
+      slotId: slot.id,
+      pillarType: pillarType,
+      text: text,
+      compositionLabel: composition ? composition.label : null,
+      location: location, angle: angle,
+      productName: fields.productName, category: fields.category,
+      benefits: benefits,
+      source: "template",
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  // ---------- shared toast feedback ----------
+  var TOAST_DEFAULT = "Скопировано";
+  var toastTimer = null;
+  function showToast(msg, warn){
+    var toast = el("copyToast");
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.hidden = false;
+    toast.textContent = msg;
+    toast.classList.toggle("warn", !!warn);
+    toastTimer = setTimeout(function(){
+      toast.hidden = true;
+      toast.textContent = TOAST_DEFAULT;
+      toast.classList.remove("warn");
+    }, 1800);
+  }
+
+  function onCopy(){
+    var ta = el("promptOutput");
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(function(){ showToast(TOAST_DEFAULT); }).catch(function(){ fallbackCopy(ta); });
+    } else fallbackCopy(ta);
+  }
+  function fallbackCopy(ta){
+    try{ ta.removeAttribute("readonly"); ta.select(); document.execCommand("copy"); ta.setAttribute("readonly",""); showToast(TOAST_DEFAULT); }catch(e){}
+  }
+
+  async function onSaveToPlan(){
+    var slot = currentSlot();
+    if (!slot){ showToast("Сначала создайте план во вкладке «План»", true); return; }
+    // Build fresh only when nothing was built for THIS card; otherwise keep
+    // what is in the output box (it may be an AI-refined or hand-edited text).
+    if (!lastBuilt || lastBuilt.slotId !== slot.id || !el("promptOutput").value.trim()) buildCurrentPrompt();
+    await savePromptToSlot(false);
+  }
+
+  // Saves the text currently in the output box as a new prompt version of
+  // the card it was built for (lastBuilt.slotId), and links it to that card.
+  async function savePromptToSlot(quiet){
+    if (!lastBuilt) return false;
+    var slot = state.slots.find(function(s){ return s.id === lastBuilt.slotId; });
+    if (!slot){ showToast("Карточка не найдена в плане", true); return false; }
+    var text = el("promptOutput").value.trim();
+    if (!text) return false;
+    var linked = linkedPromptOf(slot);
+    if (linked && linked.text === text){ if (!quiet) showToast("Этот промт уже сохранён в карточке"); return true; }
+
+    var promptId = cryptoId();
+    var record = Object.assign({}, lastBuilt, {id: promptId, text: text, createdAt: new Date().toISOString()});
+    state.prompts.unshift(record);
+    slot.linkedPromptId = promptId;
+    slot.promptIds = (slot.promptIds || []).concat(promptId).slice(-10);
+
+    var persistOk = true;
+    if (state.online){
+      try{
+        await state.db.collection("prompts").doc(promptId).set(record);
+        persistOk = await persistSlots();
+      }catch(e){ console.warn("save failed", e); persistOk = false; }
+    }
+    renderPlan();
+    renderCardSelect();
+
+    if (!state.online){
+      showToast("Промт сохранён в карточку локально — хранилище недоступно, не переживёт перезагрузку", true);
+    } else if (!persistOk){
+      showToast("Не удалось сохранить в хранилище, попробуйте ещё раз", true);
+    } else {
+      showToast("Промт сохранён в карточку №" + String(state.slots.indexOf(slot) + 1).padStart(2, "0"));
+    }
+    return persistOk;
+  }
+
+  // ---------- AI helpers ----------
+  // Re-tries claude.use("sample") on demand instead of treating one failed
+  // load as "no AI forever"; buttons stay enabled and explain the reason on click.
+  async function getSample(){
+    if (state.sample) return state.sample;
+    try{ state.sample = window.claude ? await window.claude.use("sample") : null; }catch(e){ state.sample = null; }
+    if (state.sample && !state.imageLimits){
+      try{ var lim = await state.sample.limits(); if (lim && lim.images) state.imageLimits = lim.images; }catch(e){}
+    }
+    return state.sample;
+  }
+  function aiErrorText(e, fallback){
+    var code = e && e.code;
+    return (code && ADJUST_ERROR_MESSAGES[code]) || ((fallback || "Ошибка ИИ") + " (" + (code || "неизвестная ошибка") + ") — попробуйте ещё раз.");
+  }
+  var NO_AI_TEXT = "ИИ не подключился в этом окне. Откройте артефакт на claude.ai (не во встроенном предпросмотре) и разрешите странице доступ к Claude, когда появится запрос.";
+  function setStatus(id, text, warn){
+    var s = el(id);
+    s.hidden = !text; s.textContent = text || "";
+    s.classList.toggle("warn", !!warn);
+  }
+
+  function neighborContext(slot){
+    var i = state.slots.indexOf(slot);
+    var out = [];
+    [i + 1, i - 1].forEach(function(j){
+      var s = state.slots[j];
+      if (!s) return;
+      var lp = linkedPromptOf(s);
+      out.push("№" + (j + 1) + " · " + pillarOf(s.pillarType).label + " — " + (s.note || "без заметки")
+        + (lp ? "\nЕё промт (начало): " + lp.text.slice(0, 700) : ""));
+    });
+    return out.join("\n\n");
+  }
+
+  async function onRefinePrompt(){
+    var slot = currentSlot();
+    if (!slot) return;
+    if (!lastBuilt || lastBuilt.slotId !== slot.id || !el("promptOutput").value.trim()) buildCurrentPrompt();
+    var sample = await getSample();
+    if (!sample){ setStatus("promptStatus", NO_AI_TEXT, true); return; }
+    var btn = el("refinePromptBtn");
+    var base = el("promptOutput").value;
+    var prompt = "Ты арт-директор Instagram-аккаунта магазина декора. Ниже — шаблонный промт для генерации изображения карточки в ChatGPT. "
+      + "Доработай его под конкретную идею карточки: сделай сцену конкретной и живой (что именно в кадре, где стоит товар, какие предметы вокруг, откуда свет, какое настроение), "
+      + "сохрани все требования шаблона (формат 4:5, ДНК серии, запреты, точность товара, структура разделов), "
+      + "и сделай кадр заметно непохожим на соседние карточки. Не выдумывай свойства товара. Пиши по-русски.\n"
+      + "Ответь ТОЛЬКО готовым текстом промта, без пояснений до или после.\n\n"
+      + "ИДЕЯ КАРТОЧКИ: " + pillarOf(slot.pillarType).label + " — " + (slot.note || "без заметки") + "\n\n"
+      + (neighborContext(slot) ? "СОСЕДНИЕ КАРТОЧКИ (не повторять их сцену):\n" + neighborContext(slot) + "\n\n" : "")
+      + "ШАБЛОННЫЙ ПРОМТ:\n" + base;
+    btn.disabled = true;
+    setStatus("promptStatus", "ИИ дорабатывает промт… (обычно 10–40 секунд)");
+    try{
+      var res = await sample(prompt.slice(0, 60000), {cache:false, onText: function(u){ el("promptOutput").value = u.text; }});
+      el("promptOutput").value = res.text.trim();
+      lastBuilt.source = "ai";
+      setStatus("promptStatus", res.truncated ? "Ответ обрезан по длине — проверьте конец промта." : "Готово: промт доработан ИИ.", !!res.truncated);
+      if (el("autoSaveToggle").checked) await savePromptToSlot(true);
+    }catch(e){
+      el("promptOutput").value = base;
+      setStatus("promptStatus", aiErrorText(e, "Не удалось доработать промт"), true);
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  function buildCaptionPrompt(slot, promptText){
+    var pillar = pillarOf(slot.pillarType);
+    var pn = el("productName").value.trim(), cat = el("productCategory").value.trim();
+    var ben = [el("productBenefit1").value, el("productBenefit2").value, el("productBenefit3").value].map(function(s){ return s.trim(); }).filter(Boolean);
+    var dims = [["высота", el("productHeight").value], ["ширина", el("productWidth").value], ["глубина", el("productDepth").value]]
+      .filter(function(d){ return d[1]; }).map(function(d){ return d[0] + " " + d[1] + " см"; });
+    return 'Ответь строго одним JSON-объектом без markdown: {"caption": "текст подписи", "hashtags": ["#тег1", "#тег2"]}\n\n'
+      + "Напиши подпись к посту в Instagram для магазина декора для дома. Тон: редакционный, тёплый, без канцелярита и без восклицательных знаков подряд; по-русски; 400–900 знаков; "
+      + "первая строка — цепляющий заход; абзацы короткие; в конце мягкий призыв (сохранить пост, написать в директ или перейти по ссылке в профиле). Эмодзи — не больше 2.\n"
+      + (pillar.density === "air" && slot.pillarType !== "QUOTE" ? "На изображении нет текста, поэтому подпись должна нести всю информацию о товаре (что это, чем хорош, размеры, если известны).\n" : "")
+      + (slot.pillarType === "CAROUSEL" ? "Это карусель — подскажи в подписи листать слайды.\n" : "")
+      + (slot.pillarType === "REELS" ? "Это Reels — подпись короче, 200–400 знаков.\n" : "")
+      + "Не выдумывай свойства товара, которых нет в данных. hashtags — 8–12 русских и английских тегов по теме.\n\n"
+      + "Тип карточки: " + pillar.label + "\nИдея карточки: " + (slot.note || "—") + "\n"
+      + (pn ? "Товар: " + pn + (cat ? " — " + cat : "") + "\n" : "")
+      + (ben.length ? "Преимущества: " + ben.join("; ") + "\n" : "")
+      + (dims.length ? "Размеры: " + dims.join(", ") + "\n" : "")
+      + (promptText ? "\nПромт изображения этой карточки (для понимания сцены):\n" + promptText.slice(0, 6000) : "");
+  }
+
+  async function writeCaptionFor(slot, statusSetter){
+    var sample = await getSample();
+    if (!sample){ statusSetter(NO_AI_TEXT, true); return false; }
+    var lp = linkedPromptOf(slot);
+    var promptText = (lastBuilt && lastBuilt.slotId === slot.id && el("promptOutput").value) || (lp && lp.text) || "";
+    statusSetter("ИИ пишет текст поста…");
+    try{
+      var r = await sample.json(buildCaptionPrompt(slot, promptText), {cache:false});
+      var cap = r && typeof r.caption === "string" ? r.caption.trim() : "";
+      if (!cap) throw {code: "empty_completion"};
+      var tags = Array.isArray(r.hashtags) ? r.hashtags.map(String).filter(Boolean).join(" ") : "";
+      slot.caption = cap + (tags ? "\n\n" + tags : "");
+      await persistSlots();
+      statusSetter("Текст поста сохранён в карточку.");
+      return true;
+    }catch(e){
+      statusSetter(aiErrorText(e, "Не удалось написать текст"), true);
+      return false;
+    }
+  }
+
+  async function onCaption(){
+    var slot = currentSlot();
+    if (!slot) return;
+    var btn = el("captionBtn");
+    btn.disabled = true;
+    var ok = await writeCaptionFor(slot, function(t, w){ setStatus("captionStatus", t, w); });
+    btn.disabled = false;
+    if (ok){ el("captionOutput").value = slot.caption; renderPlan(); renderCardSelect(); }
+  }
+
+  async function onSaveCaption(){
+    var slot = currentSlot();
+    if (!slot) return;
+    slot.caption = el("captionOutput").value.trim();
+    var ok = await persistSlots();
+    renderPlan(); renderCardSelect();
+    showToast(!state.online ? "Сохранено локально — хранилище недоступно" : ok ? "Текст поста сохранён" : "Не удалось сохранить, попробуйте ещё раз", !ok);
+  }
+
+  function copyText(text){
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ showToast(TOAST_DEFAULT); }).catch(function(){ fallbackCopyText(text); });
+    } else fallbackCopyText(text);
+  }
+  function fallbackCopyText(text){
+    try{
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+      showToast(TOAST_DEFAULT);
+    }catch(e){ showToast("Не удалось скопировать", true); }
+  }
+
+  // ---------- reset blocks ("Сбросить" per parameter block, Промт tab) ----------
+  // Each function clears ONLY the fields belonging to its own <details> block --
+  // no cross-block field ids -- and never triggers generation/save.
+  function resetModeBlock(){
+    el("modeOverrideSelect").value = "";
+    updateEffectiveUI();
+  }
+  function resetProductBlock(){
+    ["productName","productCategory","productHeight","productWidth","productDepth",
+     "productBenefit1","productBenefit2","productBenefit3"].forEach(function(id){
+      el(id).value = "";
+    });
+  }
+  function resetCompositionBlock(){
+    el("compositionSelect").value = "";
+    updateCompositionHint();
+  }
+  function resetSceneBlock(){
+    el("locationSelect").value = "";
+    el("lightSelect").value = "";
+    el("angleSelect").value = "";
+    selectedProps = new Set();
+    renderPropsChips();
+    el("humanToggle").checked = false;
+  }
+  function resetDesignBlock(){
+    el("accentColorSelect").value = "";
+    el("kickerText").value = "DECOR FOR A BETTER HOME";
+    el("sloganText").value = "СТИЛЬ В КАЖДОЙ ДЕТАЛИ";
+    el("avoidRepeatToggle").checked = true;
+  }
+
+  // ---------- plan ----------
+  async function persistSlots(){
+    if (!state.online) return false;
+    try{ await state.db.doc("plan/main").set({slots: state.slots}); return true; }catch(e){ console.warn(e); return false; }
+  }
+
+  // fixed[i] = a type the user pinned for post i (or "" for auto). Auto
+  // slots respect the rhythm rule against BOTH neighbours, including pinned ones,
+  // and avoid repeating the previous air type.
+  function generateRhythmSequence(n, fixed){
+    fixed = fixed || [];
+    var airTypes = ["MOOD","MACRO","QUOTE","REELS"];
+    var seq = [];
+    for (var i = 0; i < n; i++){
+      if (fixed[i] && PILLARS[fixed[i]]){ seq.push(fixed[i]); continue; }
+      var prevDense = i > 0 && PILLARS[seq[i-1]].density === "dense";
+      var nextDense = fixed[i+1] && PILLARS[fixed[i+1]] && PILLARS[fixed[i+1]].density === "dense";
+      var pickDense = !prevDense && !nextDense && Math.random() < 0.55;
+      var type;
+      if (pickDense) type = Math.random() < 0.75 ? "HERO" : "CAROUSEL";
+      else {
+        var pool = airTypes.filter(function(t){ return t !== seq[i-1]; });
+        type = pool[Math.floor(Math.random()*pool.length)];
+      }
+      seq.push(type);
+    }
+    return seq;
+  }
+
+  // ---------- per-post generation settings ----------
+  var postRowState = []; // index -> {type, location, light, angle, accent, human, props:[], note}
+  function blankPostRow(){ return {type:"", location:"", light:"", angle:"", accent:"", human:"", props:[], note:""}; }
+  function postRowIsCustom(r){ return !!(r.type || r.location || r.light || r.angle || r.accent || r.human || r.props.length || r.note); }
+  function postRowSummary(r){
+    if (!postRowIsCustom(r)) return "авто · общие параметры";
+    return [r.type ? pillarOf(r.type).label : "авто-тип", r.location, r.light, r.angle, r.accent, r.human === "yes" ? "с рукой" : r.human === "no" ? "без человека" : "", r.props.join(", "), r.note]
+      .filter(Boolean).join(" · ");
+  }
+  function planCountValue(){ return Math.max(1, Math.min(40, parseInt(el("planCount").value, 10) || 9)); }
+
+  function renderPostRows(){
+    var n = planCountValue();
+    while (postRowState.length < n) postRowState.push(blankPostRow());
+    var openIdx = {};
+    el("postRows").querySelectorAll("details.post-row[open]").forEach(function(d){ openIdx[d.dataset.row] = true; });
+    var common = "— общее —";
+    var html = "";
+    for (var i = 0; i < n; i++){
+      var r = postRowState[i];
+      var sel = function(list, val){ return optionsHtml(list, common).replace('value="' + escapeHtml(val) + '"', 'value="' + escapeHtml(val) + '" selected'); };
+      html += '<details class="post-row' + (postRowIsCustom(r) ? " custom" : "") + '" data-row="' + i + '"' + (openIdx[i] ? " open" : "") + '>'
+        + '<summary><strong>Пост ' + (i + 1) + '</strong><span class="post-row-sum">' + escapeHtml(postRowSummary(r)) + "</span></summary>"
+        + '<div class="post-row-body">'
+        + '<div class="field"><label>Тип</label><select data-pr="type"><option value="">Авто (по ритму)</option>'
+        + Object.keys(PILLARS).map(function(k){ return '<option value="' + k + '"' + (r.type === k ? " selected" : "") + ">" + PILLARS[k].label + "</option>"; }).join("") + "</select></div>"
+        + '<div class="field"><label>Локация</label><select data-pr="location">' + sel(allList("locations"), r.location) + "</select></div>"
+        + '<div class="field"><label>Свет</label><select data-pr="light">' + sel(allList("light"), r.light) + "</select></div>"
+        + '<div class="field"><label>Ракурс</label><select data-pr="angle">' + sel(allList("angles"), r.angle) + "</select></div>"
+        + '<div class="field"><label>Акцент</label><select data-pr="accent">' + sel(allList("accentColors"), r.accent) + "</select></div>"
+        + '<div class="field"><label>Человек</label><select data-pr="human"><option value="">' + common + '</option><option value="yes"' + (r.human === "yes" ? " selected" : "") + '>Да, рука в кадре</option><option value="no"' + (r.human === "no" ? " selected" : "") + ">Нет</option></select></div>"
+        + '<div class="field wide"><label>Реквизит (пусто = общий)</label><div class="chip-row">'
+        + allList("props").map(function(p){ return '<button type="button" class="chip" data-pr-prop="' + escapeHtml(p) + '" aria-pressed="' + (r.props.indexOf(p) >= 0) + '">' + escapeHtml(p) + "</button>"; }).join("")
+        + "</div></div>"
+        + '<div class="field wide"><label>Заметка / идея (пусто = придумать)</label><input type="text" data-pr="note" value="' + escapeHtml(r.note) + '" placeholder="Например: ваза с сухоцветами на комоде"></div>'
+        + "</div></details>";
+    }
+    el("postRows").innerHTML = html;
+  }
+  function refreshPostRowHead(details){
+    var r = postRowState[Number(details.dataset.row)];
+    details.classList.toggle("custom", postRowIsCustom(r));
+    details.querySelector(".post-row-sum").textContent = postRowSummary(r);
+  }
+  function onPostRowsInput(e){
+    var t = e.target, details = t.closest("details.post-row");
+    if (!details || !t.dataset.pr) return;
+    postRowState[Number(details.dataset.row)][t.dataset.pr] = t.value;
+    refreshPostRowHead(details);
+  }
+  function onPostRowsClick(e){
+    var chip = e.target.closest("[data-pr-prop]");
+    if (!chip) return;
+    var details = chip.closest("details.post-row");
+    var r = postRowState[Number(details.dataset.row)];
+    var p = chip.dataset.prProp, at = r.props.indexOf(p);
+    if (at >= 0) r.props.splice(at, 1); else r.props.push(p);
+    chip.setAttribute("aria-pressed", at < 0);
+    refreshPostRowHead(details);
+  }
+
+  function pickVariantNotes(seq){
+    var used = {};
+    state.slots.forEach(function(s){ used[s.note] = true; });
+    return seq.map(function(type){
+      var pool = (NOTE_VARIANTS[type] || [DEFAULT_NOTES[type]]).filter(function(n){ return !used[n]; });
+      if (!pool.length) pool = NOTE_VARIANTS[type] || [DEFAULT_NOTES[type]];
+      var note = pool[Math.floor(Math.random() * pool.length)];
+      used[note] = true;
+      return note;
+    });
+  }
+
+  async function aiNotes(seq, rows, sample){
+    var recent = state.slots.slice(0, 12).map(function(s){ return pillarOf(s.pillarType).label + " — " + (s.note || ""); }).join("\n");
+    var pn = el("productName").value.trim();
+    var list = seq.map(function(type, i){
+      var r = rows[i] || {};
+      var hints = [r.location, r.light, r.angle, r.human === "yes" ? "рука в кадре" : "", (r.props || []).join(", ")].filter(Boolean).join("; ");
+      return (i + 1) + ". " + PILLARS[type].label + (r.note ? " — задано: " + r.note : "") + (hints ? " [" + hints + "]" : "");
+    }).join("\n");
+    var prompt = 'Ответь строго JSON-массивом из ' + seq.length + ' строк, без markdown: ["идея 1", "идея 2", ...]\n\n'
+      + "Ты ведёшь Instagram магазина декора для дома в редакционном стиле. Придумай короткую конкретную идею кадра (одно предложение, до 14 слов, по-русски) для каждого поста по порядку. "
+      + "Идеи должны быть разными между собой и не повторять недавние карточки. Если для поста идея уже задана — верни её, слегка уточнив. Учитывай тип и параметры в скобках.\n"
+      + "Типы: Hero — карточка с заголовком и инфоблоком; Mood — атмосферный кадр без текста; Деталь — макро фактуры; Карусель — серия слайдов; Цитата — текстовый слайд без товара; Reels — обложка видео.\n"
+      + (pn ? "Товар: " + pn + "\n" : "")
+      + (recent ? "\nНедавние карточки плана:\n" + recent + "\n" : "")
+      + "\nПосты:\n" + list;
+    var arr = await sample.json(prompt, {modelTier:"quick", cache:false});
+    if (!Array.isArray(arr)) throw {code:"invalid_json"};
+    return seq.map(function(_, i){ return typeof arr[i] === "string" && arr[i].trim() ? arr[i].trim() : null; });
+  }
+
+  function collectPlanDefaults(){
+    var loc = el("planDefLocation").value, light = el("planDefLight").value,
+        angle = el("planDefAngle").value, accent = el("planDefAccent").value,
+        human = el("planDefHuman").checked, props = Array.from(planDefSelectedProps);
+    if (!loc && !light && !angle && !accent && !human && !props.length) return null;
+    return {location: loc || null, light: light || null, angle: angle || null, accentColor: accent || null, human: human, props: props};
+  }
+
+  // Clears only the "Параметры генерации" block's own fields -- shared by its
+  // own "Сбросить" button (item 2) and by onGeneratePlan()'s post-success
+  // self-reset (item 4), so the clearing logic lives in exactly one place.
+  function resetPlanDefaultsBlock(){
+    el("planDefLocation").value = "";
+    el("planDefLight").value = "";
+    el("planDefAngle").value = "";
+    el("planDefAccent").value = "";
+    planDefSelectedProps = new Set();
+    renderPlanDefPropsChips();
+    el("planDefHuman").checked = false;
+  }
+
+  function mergeDefaults(common, r){
+    common = common || {};
+    var d = {
+      location: r.location || common.location || null,
+      light: r.light || common.light || null,
+      angle: r.angle || common.angle || null,
+      accentColor: r.accent || common.accentColor || null,
+      human: r.human === "yes" ? true : r.human === "no" ? false : !!common.human,
+      props: r.props.length ? r.props.slice() : (common.props || [])
+    };
+    if (!d.location && !d.light && !d.angle && !d.accentColor && !d.human && !d.props.length) return null;
+    return d;
+  }
+
+  async function onGeneratePlan(){
+    var n = planCountValue();
+    renderPostRows();
+    var rows = postRowState.slice(0, n).map(function(r){ return Object.assign({}, r, {props: r.props.slice()}); });
+    var seq = generateRhythmSequence(n, rows.map(function(r){ return r.type; }));
+    var common = collectPlanDefaults();
+    var btn = el("generatePlanBtn");
+    btn.disabled = true;
+
+    var notes = pickVariantNotes(seq);
+    if (el("aiIdeasToggle").checked){
+      var sample = await getSample();
+      if (!sample){
+        setStatus("planGenStatus", NO_AI_TEXT + " Заметки взяты из готовых вариантов.", true);
+      } else {
+        setStatus("planGenStatus", "ИИ придумывает идеи для " + n + " постов…");
+        try{
+          var ai = await aiNotes(seq, rows, sample);
+          notes = notes.map(function(v, i){ return ai[i] || v; });
+          setStatus("planGenStatus", "");
+        }catch(e){
+          setStatus("planGenStatus", aiErrorText(e, "ИИ не смог придумать идеи") + " Заметки взяты из готовых вариантов.", true);
+        }
+      }
+    } else setStatus("planGenStatus", "");
+
+    var now = new Date().toISOString();
+    var batch = seq.map(function(type, i){
+      var r = rows[i];
+      return {id:cryptoId(), pillarType:type, note: r.note || notes[i] || DEFAULT_NOTES[type],
+        linkedPromptId:null, promptIds:[], caption:"", defaults:mergeDefaults(common, r), createdAt:now};
+    });
+    state.slots = batch.concat(state.slots);
+    var ok = await persistSlots();
+    btn.disabled = false;
+    renderPlan();
+    renderCardSelect();
+    highlightSlots(batch.map(function(s){ return s.id; }));
+    showToast(!state.online ? "План создан локально — хранилище недоступно" : ok ? "Добавлено " + n + " карточек (№01–№" + String(n).padStart(2, "0") + ")" : "Не удалось сохранить план", !ok || !state.online);
+    // batch created -- clear defaults and per-post rows so they don't silently carry into the next generation
+    resetPlanDefaultsBlock();
+    postRowState = [];
+    renderPostRows();
+  }
+
+  function highlightSlots(ids){
+    var first = null;
+    ids.forEach(function(id){
+      var card = el("planGrid").querySelector('.plan-card[data-id="' + id + '"]');
+      if (!card) return;
+      card.classList.add("fresh");
+      if (!first) first = card;
+    });
+    if (first) first.scrollIntoView({behavior:"smooth", block:"center"});
+    setTimeout(function(){
+      el("planGrid").querySelectorAll(".plan-card.fresh").forEach(function(c){ c.classList.remove("fresh"); });
+    }, 4000);
+  }
+
+  async function onClearPlan(){
+    if (!state.slots.length) return;
+    if (!confirm("Удалить все " + state.slots.length + " карточек плана? Сохранённые промты останутся в истории, но отвяжутся от карточек.")) return;
+    state.slots = [];
+    var ok = await persistSlots();
+    renderPlan(); renderCardSelect();
+    showToast(ok || !state.online ? "План очищен" : "Не удалось сохранить, попробуйте ещё раз", !ok && state.online);
+  }
+
+  function renderPlan(){
+    try{ renderPlanInner(); }
+    catch(e){ console.error(e); showJsError("не удалось отрисовать план — " + (e && e.message)); }
+  }
+  function renderPlanInner(){
+    var grid = el("planGrid");
+    if (!state.slots.length){
+      grid.innerHTML = '<p class="placeholder-state">План пуст — сгенерируйте план или добавьте первый слот вручную.</p>';
+      return;
+    }
+    // Canonical (array) index per slot id -- drives numbering and move-up/
+    // move-down disabled state, unaffected by the display sort toggle below.
+    var canonicalIndex = {};
+    state.slots.forEach(function(s, i){ canonicalIndex[s.id] = i; });
+
+    // Rhythm-check adjacency warnings are computed from CANONICAL array
+    // neighbors only (never from the reversed display order), keyed by the
+    // id of the "current" (canonically later) slot of each flagged pair.
+    var rhythmWarnings = {};
+    state.slots.forEach(function(s, i){
+      var prev = state.slots[i-1];
+      if (prev && pillarOf(prev.pillarType).density === "dense" && pillarOf(s.pillarType).density === "dense"){
+        rhythmWarnings[s.id] = '<div class="rhythm-warning">⚠ Слоты ' + i + " и " + (i+1) + ' идут подряд плотными (' + escapeHtml(pillarOf(prev.pillarType).label) + " → " + escapeHtml(pillarOf(s.pillarType).label) + '). Вставьте между ними Mood, Деталь, Цитату или Reels.</div>';
+      }
+    });
+
+    // state.slots itself always stays newest-first (canonical); this is
+    // purely a RENDER-ORDER view -- default (state.sortReversed = true) is
+    // oldest-first, the opposite of the raw array order.
+    var displaySlots = state.sortReversed ? state.slots.slice().reverse() : state.slots;
+
+    var html = "";
+    displaySlots.forEach(function(s){
+      var i = canonicalIndex[s.id];
+      if (rhythmWarnings[s.id]) html += rhythmWarnings[s.id];
+      var pillar = pillarOf(s.pillarType);
+      html += '<article class="plan-card" data-id="' + s.id + '">'
+        + '<div class="plan-card-head"><span class="plan-index">№' + String(i+1).padStart(2,"0") + '</span>'
+        + '<span class="badge badge-' + pillar.density + '">' + escapeHtml(pillar.label) + "</span></div>"
+        + '<p class="plan-note">' + (escapeHtml(s.note) || "—") + "</p>";
+      var linked = linkedPromptOf(s);
+      if (linked){
+        var versions = (s.promptIds || []).length;
+        html += '<div class="card-block"><div class="card-block-label"><span>Промт' + (linked.source === "ai" ? " · ИИ" : "") + '</span><span>' + (versions > 1 ? "версия " + versions : "") + "</span></div>"
+          + '<p class="card-block-text" data-block="prompt">' + escapeHtml(linked.text) + "</p>"
+          + '<div class="card-block-actions">'
+          + '<button type="button" class="btn-ghost" data-action="expand" data-id="' + s.id + '" data-block="prompt">Целиком</button>'
+          + '<button type="button" class="btn-ghost" data-action="copy-prompt" data-id="' + s.id + '">Копировать</button>'
+          + '<button type="button" class="btn-ghost" data-action="open-in-prompt" data-id="' + s.id + '">Открыть в «Промт»</button>'
+          + "</div></div>";
+      } else if (s.linkedPromptId){
+        html += '<p class="no-prompt">Промт привязан, но не загрузился из хранилища — пересоберите его во вкладке «Промт».</p>'
+          + '<div class="card-block-actions"><button type="button" class="btn-ghost btn-small" data-action="open-in-prompt" data-id="' + s.id + '">Собрать промт</button></div>';
+      } else {
+        html += '<div class="card-block-actions"><span class="no-prompt">Промта нет.</span><button type="button" class="btn-ghost btn-small" data-action="open-in-prompt" data-id="' + s.id + '">Собрать промт</button></div>';
+      }
+      html += '<div class="card-block"><div class="card-block-label"><span>Текст поста</span></div>'
+        + (s.caption
+          ? '<p class="card-block-text" data-block="caption">' + escapeHtml(s.caption) + "</p>"
+          : '<p class="no-prompt">Ещё не написан.</p>')
+        + '<div class="card-block-actions">'
+        + (s.caption ? '<button type="button" class="btn-ghost" data-action="expand" data-id="' + s.id + '" data-block="caption">Целиком</button>'
+          + '<button type="button" class="btn-ghost" data-action="copy-caption" data-id="' + s.id + '">Копировать</button>' : "")
+        + '<button type="button" class="btn-ghost" data-action="write-caption" data-id="' + s.id + '">✦ ' + (s.caption ? "Переписать" : "Написать") + " с ИИ</button>"
+        + '</div><p class="hint adjust-status caption-status" hidden></p></div>';
+      html += '<div class="plan-card-controls">'
+        + '<button type="button" class="icon-btn" data-action="move-up" data-id="' + s.id + '" title="Вверх"' + (i===0?" disabled":"") + '>↑</button>'
+        + '<button type="button" class="icon-btn" data-action="move-down" data-id="' + s.id + '" title="Вниз"' + (i===state.slots.length-1?" disabled":"") + '>↓</button>'
+        + '<button type="button" class="icon-btn danger" data-action="delete-slot" data-id="' + s.id + '" title="Удалить">✕</button>'
+        + "</div>"
+        + '<div class="plan-card-actions">'
+        + '<button type="button" class="btn-ghost btn-small" data-action="toggle-edit" data-id="' + s.id + '">Изменить</button>'
+        + '<button type="button" class="btn-ghost btn-small" data-action="toggle-adjust" data-id="' + s.id + '">✦ Скорректировать с ИИ</button>'
+        + "</div>"
+        + '<div class="plan-edit-form" hidden>'
+        + '<select data-edit-type>' + Object.keys(PILLARS).map(function(k){ return '<option value="' + k + '"' + (k===s.pillarType?" selected":"") + '>' + PILLARS[k].label + "</option>"; }).join("") + '</select>'
+        + '<textarea data-edit-note rows="2">' + escapeHtml(s.note) + '</textarea>'
+        + '<div class="plan-form-actions"><button type="button" class="btn-primary btn-small" data-action="save-edit" data-id="' + s.id + '">Сохранить</button><button type="button" class="btn-ghost btn-small" data-action="cancel-edit" data-id="' + s.id + '">Отмена</button></div>'
+        + "</div>"
+        + '<div class="plan-adjust-form" hidden>'
+        + '<textarea data-adjust-wish rows="2" placeholder="Например: сделай акцент на подарочной упаковке"></textarea>'
+        + '<div class="plan-form-actions"><button type="button" class="btn-primary btn-small" data-action="apply-adjust" data-id="' + s.id + '">Применить</button><button type="button" class="btn-ghost btn-small" data-action="cancel-adjust" data-id="' + s.id + '">Отмена</button></div>'
+        + '<p class="hint adjust-status" hidden></p>'
+        + "</div>"
+        + "</article>";
+    });
+    grid.innerHTML = html;
+  }
+
+  // Russian status text per SampleErrorCode (see sample.d.ts) so a failure
+  // report always carries the real reason instead of one generic string.
+  var ADJUST_ERROR_MESSAGES = {
+    cancelled: "Запрос отменён.",
+    invalid_request: "Ошибка запроса на странице — попробуйте обновить страницу.",
+    prompt_too_large: "Заметка или пожелание слишком длинные — сократите текст.",
+    not_granted: "ИИ-корректировка не разрешена для этой страницы.",
+    sampling_disabled: "ИИ недоступен для этого аккаунта или организации.",
+    not_declared: "ИИ-корректировка отключена в этой версии страницы.",
+    rate_limited: "Слишком много запросов — попробуйте чуть позже.",
+    session_expired: "Сессия истекла — войдите заново и повторите.",
+    refused: "Нейросеть отклонила запрос — переформулируйте пожелание.",
+    empty_completion: "Нейросеть не вернула ответ — переформулируйте пожелание.",
+    invalid_json: "Не удалось разобрать ответ нейросети — попробуйте ещё раз.",
+    upstream_error: "Временная ошибка сервиса — попробуйте ещё раз.",
+    capability_disabled: "ИИ-корректировка недоступна в этом окне просмотра.",
+    capability_removed: "ИИ-корректировка недоступна в этой версии приложения.",
+    no_key: "Введите ключ Anthropic в «Настройки → Подключение».",
+    invalid_key: "Ключ Anthropic не принят — проверьте его в «Настройках».",
+    no_credits: "На балансе Anthropic не осталось средств — пополните его в консоли.",
+    bad_model: "Модель не найдена — выберите другую в «Настройки → Подключение».",
+    network: "Нет связи с сервисом — проверьте интернет.",
+    image_rejected: "Файл отклонён — проверьте формат и размер изображения.",
+    images_unavailable: "Загрузка изображений недоступна в этом окне."
+  };
+
+  function buildAdjustPrompt(slot, wish){
+    return 'Ответь строго одним JSON-объектом, без пояснений и без markdown, ровно в этом формате:\n'
+      + '{"note": "короткая заметка одним предложением на русском", "pillarType": null}\n\n'
+      + "Контекст: ты ведёшь Instagram-план карточек товара, в редакционном стиле. Типы карточек: HERO, MOOD, MACRO, CAROUSEL, QUOTE, REELS.\n"
+      + "Текущая карточка — тип: " + slot.pillarType + "; заметка: " + (slot.note || "(пусто)") + ".\n"
+      + "Пожелание пользователя: " + wish + "\n\n"
+      + "note — перепиши заметку с учётом пожелания: одно короткое предложение на русском, без кавычек.\n"
+      + "pillarType — null, если тип менять не нужно; иначе строго один из HERO, MOOD, MACRO, CAROUSEL, QUOTE, REELS.";
+  }
+
+  async function runAdjust(idx, wish, card, btn){
+    var statusEl = card.querySelector(".plan-adjust-form .adjust-status");
+    btn.disabled = true;
+    statusEl.hidden = false; statusEl.textContent = "Подключаю ИИ…";
+    var sample = await getSample();
+    if (!sample){
+      statusEl.textContent = NO_AI_TEXT;
+      btn.disabled = false;
+      return;
+    }
+    statusEl.textContent = "Применяю…";
+    var slot = state.slots[idx];
+    var prompt = buildAdjustPrompt(slot, wish);
+
+    var result = null, err = null;
+    try{
+      result = await sample.json(prompt, {modelTier:"quick", cache:false});
+    }catch(e){
+      err = e;
+      // Exactly one bounded retry, only for invalid_json: a failed json()
+      // call is never cached, so a fresh identical call genuinely asks
+      // again (per sample.json's own docs) — this is a single extra
+      // attempt, not a loop; whatever this second attempt does, we stop.
+      if (e && e.code === "invalid_json"){
+        try{
+          result = await sample.json(prompt, {modelTier:"quick", cache:false});
+          err = null;
+        }catch(e2){
+          err = e2;
+        }
+      }
+    }
+
+    if (err){
+      var code = err && err.code;
+      var msg = (code && ADJUST_ERROR_MESSAGES[code]) || ("Не удалось скорректировать (" + (code || "неизвестная ошибка") + ") — попробуйте ещё раз.");
+      statusEl.hidden = false; statusEl.textContent = msg;
+      btn.disabled = false;
+      return;
+    }
+
+    if (result && typeof result.note === "string" && result.note.trim()) slot.note = result.note.trim();
+    if (result && typeof result.pillarType === "string" && PILLARS[result.pillarType]) slot.pillarType = result.pillarType;
+    await persistSlots();
+    renderPlan();
+    renderCardSelect();
+  }
+
+  async function onPlanGridClick(e){
+    var btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    var action = btn.dataset.action, id = btn.dataset.id;
+    var card = btn.closest(".plan-card");
+
+    if (action === "toggle-prompt"){
+      var preview = card.querySelector(".plan-prompt-preview");
+      if (preview){ preview.hidden = !preview.hidden; btn.textContent = preview.hidden ? "Показать промт" : "Скрыть промт"; }
+      return;
+    }
+    var slotHere = state.slots.find(function(s){ return s.id === id; });
+    if (action === "expand"){
+      var blockEl = card.querySelector('.card-block-text[data-block="' + btn.dataset.block + '"]');
+      if (blockEl){ var full = blockEl.classList.toggle("full"); btn.textContent = full ? "Свернуть" : "Целиком"; }
+      return;
+    }
+    if (action === "copy-prompt"){ var lp = linkedPromptOf(slotHere); if (lp) copyText(lp.text); return; }
+    if (action === "copy-caption"){ if (slotHere && slotHere.caption) copyText(slotHere.caption); return; }
+    if (action === "open-in-prompt"){
+      if (!slotHere) return;
+      el("tabBtnGenerator").click();
+      el("cardSelect").value = slotHere.id;
+      onCardChange();
+      window.scrollTo({top:0, behavior:"smooth"});
+      return;
+    }
+    if (action === "write-caption"){
+      if (!slotHere) return;
+      var capStatus = card.querySelector(".caption-status");
+      btn.disabled = true;
+      var ok = await writeCaptionFor(slotHere, function(t){ capStatus.hidden = false; capStatus.textContent = t; });
+      btn.disabled = false;
+      if (ok){ renderPlan(); renderCardSelect(); if (currentSlot() === slotHere) el("captionOutput").value = slotHere.caption; }
+      return;
+    }
+    if (action === "toggle-edit"){
+      var editForm = card.querySelector(".plan-edit-form");
+      editForm.hidden = !editForm.hidden;
+      card.querySelector(".plan-adjust-form").hidden = true;
+      if (!editForm.hidden) editForm.querySelector("textarea").focus();
+      return;
+    }
+    if (action === "cancel-edit"){ card.querySelector(".plan-edit-form").hidden = true; return; }
+    if (action === "toggle-adjust"){
+      var adjForm = card.querySelector(".plan-adjust-form");
+      adjForm.hidden = !adjForm.hidden;
+      card.querySelector(".plan-edit-form").hidden = true;
+      if (!adjForm.hidden) adjForm.querySelector("textarea").focus();
+      return;
+    }
+    if (action === "cancel-adjust"){ card.querySelector(".plan-adjust-form").hidden = true; return; }
+
+    var idx = state.slots.findIndex(function(s){ return s.id === id; });
+    if (idx < 0) return;
+
+    if (action === "save-edit"){
+      var newType = card.querySelector("[data-edit-type]").value;
+      var newNote = card.querySelector("[data-edit-note]").value.trim();
+      state.slots[idx].pillarType = newType;
+      state.slots[idx].note = newNote;
+      var editPersisted = await persistSlots();
+      renderPlan(); renderCardSelect();
+      if (!state.online){
+        showToast("Изменения сохранены локально — хранилище недоступно, не переживут перезагрузку", true);
+      } else if (!editPersisted){
+        showToast("Не удалось сохранить изменения, попробуйте ещё раз", true);
+      } else {
+        showToast("Изменения сохранены");
+      }
+      return;
+    }
+    if (action === "apply-adjust"){
+      var wish = card.querySelector("[data-adjust-wish]").value.trim();
+      if (!wish){
+        var st = card.querySelector(".plan-adjust-form .adjust-status");
+        st.hidden = false; st.textContent = "Напишите пожелание — что изменить в карточке.";
+        return;
+      }
+      await runAdjust(idx, wish, card, btn);
+      return;
+    }
+    var isDelete = action === "delete-slot";
+    if (action === "move-up" && idx > 0){
+      var tmp = state.slots[idx-1]; state.slots[idx-1] = state.slots[idx]; state.slots[idx] = tmp;
+    } else if (action === "move-down" && idx < state.slots.length - 1){
+      var tmp2 = state.slots[idx+1]; state.slots[idx+1] = state.slots[idx]; state.slots[idx] = tmp2;
+    } else if (isDelete){
+      state.slots.splice(idx, 1);
+    } else return;
+    var movePersisted = await persistSlots();
+    renderPlan();
+    renderCardSelect();
+    // Move-up/move-down stay silent (frequent, low-stakes clicks — a toast
+    // on every click would just be noise); delete is deliberate/destructive
+    // and gets the same honest feedback as save-edit/save-to-plan.
+    if (isDelete){
+      if (!state.online){
+        showToast("Карточка удалена локально — хранилище недоступно, не переживёт перезагрузку", true);
+      } else if (!movePersisted){
+        showToast("Не удалось сохранить удаление, попробуйте ещё раз", true);
+      } else {
+        showToast("Карточка удалена");
+      }
+    }
+  }
+
+  async function onAddSlot(){
+    var note = el("newSlotNote").value.trim();
+    var type = el("newSlotType").value;
+    state.slots.unshift({id:cryptoId(), pillarType:type, note: note || DEFAULT_NOTES[type], linkedPromptId:null, defaults:null, createdAt:new Date().toISOString()});
+    el("newSlotNote").value = "";
+    var addPersisted = await persistSlots();
+    renderPlan();
+    renderCardSelect();
+    if (!state.online){
+      showToast("Слот добавлен локально — хранилище недоступно, не переживёт перезагрузку", true);
+    } else if (!addPersisted){
+      showToast("Не удалось сохранить слот в хранилище, попробуйте ещё раз", true);
+    } else {
+      showToast("Слот добавлен");
+    }
+  }
+
+  // ---------- settings ----------
+  var LIST_META = [
+    {key:"locations", label:"Локации"},
+    {key:"light", label:"Свет"},
+    {key:"angles", label:"Ракурсы"},
+    {key:"props", label:"Реквизит"},
+    {key:"accentColors", label:"Акцентные цвета"},
+    {key:"compositions", label:"Композиционные приёмы (только HERO)"}
+  ];
+
+  async function persistCustom(){
+    if (!state.online) return;
+    try{ await state.db.doc("config/customLists").set(state.custom); }catch(e){ console.warn(e); }
+  }
+
+  function renderSettings(){
+    var editors = el("listEditors");
+    editors.innerHTML = LIST_META.map(function(meta){
+      var isComp = meta.key === "compositions";
+      var baseChips = BASE[meta.key].map(function(v){
+        var text = isComp ? v.label : v;
+        return '<span class="chip static" aria-pressed="false">' + escapeHtml(text) + "</span>";
+      }).join("");
+      var customChips = state.custom[meta.key].map(function(v, i){
+        var text = isComp ? v.label : v;
+        return '<span class="chip" aria-pressed="true">' + escapeHtml(text) + '<button type="button" class="chip-remove" data-action="remove-custom" data-list="' + meta.key + '" data-index="' + i + '" title="Удалить">×</button></span>';
+      }).join("");
+      var addRow = isComp
+        ? '<div class="list-add-row"><input type="text" placeholder="Название приёма" data-comp-label>'
+          + '<input type="text" placeholder="Описание приёма" data-comp-desc>'
+          + '<button type="button" class="btn-ghost btn-small" data-action="add-composition">+ Добавить</button></div>'
+        : '<div class="list-add-row"><input type="text" placeholder="Новый вариант" data-list-input="' + meta.key + '">'
+          + '<button type="button" class="btn-ghost btn-small" data-action="add-custom" data-list="' + meta.key + '">+ Добавить</button></div>';
+      return '<div class="list-editor panel"><h3>' + meta.label + '</h3><div class="chip-row">' + baseChips + customChips + "</div>" + addRow + "</div>";
+    }).join("");
+  }
+
+  async function onSettingsClick(e){
+    var btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    var action = btn.dataset.action;
+    if (action === "remove-custom"){
+      var list = btn.dataset.list, index = Number(btn.dataset.index);
+      state.custom[list].splice(index, 1);
+      await persistCustom(); renderSettings(); renderStaticLists();
+    } else if (action === "add-custom"){
+      var list2 = btn.dataset.list;
+      var input = document.querySelector('[data-list-input="' + list2 + '"]');
+      var val = input.value.trim();
+      if (val){ state.custom[list2].push(val); input.value = ""; await persistCustom(); renderSettings(); renderStaticLists(); }
+    } else if (action === "add-composition"){
+      var labelInput = document.querySelector("[data-comp-label]");
+      var descInput = document.querySelector("[data-comp-desc]");
+      var label = labelInput.value.trim(), desc = descInput.value.trim();
+      if (label && desc){
+        state.custom.compositions.push({label: label, desc: desc});
+        labelInput.value = ""; descInput.value = "";
+        await persistCustom(); renderSettings(); renderStaticLists();
+      }
+    }
+  }
+
+  // ---------- inline "add your own" (reachable directly from Промт tab /
+  // План "Параметры генерации", not only via Настройки) ----------
+  // Reuses the exact same storage as Настройки's list-editors: state.custom[key]
+  // + persistCustom() + renderStaticLists()/renderSettings() -- no parallel
+  // storage path, so a value added here shows up in Настройки and vice versa.
+  async function onInlineAddConfirm(fieldWrap){
+    var list = fieldWrap.dataset.list;
+    var target = fieldWrap.dataset.target;
+    var row = fieldWrap.querySelector(".inline-add-row");
+    if (!row || !list || !state.custom[list]) return;
+
+    if (list === "compositions"){
+      var inputs = row.querySelectorAll("input");
+      var label = (inputs[0] && inputs[0].value.trim()) || "";
+      var desc = (inputs[1] && inputs[1].value.trim()) || "";
+      if (!label || !desc) return; // composition devices need both fields, same as Настройки's add-composition form
+      state.custom.compositions.push({label: label, desc: desc});
+      inputs[0].value = ""; inputs[1].value = "";
+    } else {
+      var input = row.querySelector("input");
+      var val = input ? input.value.trim() : "";
+      if (!val) return;
+      state.custom[list].push(val);
+      input.value = "";
+    }
+
+    row.hidden = true;
+    await persistCustom();
+    renderSettings();
+    renderStaticLists();
+
+    if (target){
+      var targetEl = el(target);
+      if (targetEl && targetEl.tagName === "SELECT"){
+        var added = list === "compositions"
+          ? state.custom.compositions[state.custom.compositions.length - 1].label
+          : state.custom[list][state.custom[list].length - 1];
+        targetEl.value = added;
+        if (target === "compositionSelect") updateCompositionHint();
+      }
+    }
+  }
+
+  function onAppRootClick(e){
+    var resetBtn = e.target.closest("button[data-reset]");
+    if (resetBtn){
+      var block = resetBtn.dataset.reset;
+      if (block === "mode") resetModeBlock();
+      else if (block === "product") resetProductBlock();
+      else if (block === "composition") resetCompositionBlock();
+      else if (block === "scene") resetSceneBlock();
+      else if (block === "design") resetDesignBlock();
+      else if (block === "planDefaults") resetPlanDefaultsBlock();
+      return;
+    }
+
+    var fieldWrap = e.target.closest("[data-list][data-target]");
+    if (!fieldWrap) return;
+    var row = fieldWrap.querySelector(".inline-add-row");
+    if (!row) return;
+
+    if (e.target.closest("[data-inline-add-toggle]")){
+      row.hidden = !row.hidden;
+      if (!row.hidden){
+        var firstInput = row.querySelector("input");
+        if (firstInput) firstInput.focus();
+      }
+      return;
+    }
+    if (e.target.closest("[data-inline-add-cancel]")){
+      row.hidden = true;
+      row.querySelectorAll("input").forEach(function(inp){ inp.value = ""; });
+      return;
+    }
+    if (e.target.closest("[data-inline-add-confirm]")){
+      onInlineAddConfirm(fieldWrap);
+      return;
+    }
+  }
+
+  // ---------- capability bootstrap ----------
+  async function initCapabilitiesLoad(){
+    try{ state.sample = window.claude ? await window.claude.use("sample") : null; }catch(e){ state.sample = null; }
+    // sample.limits() is documented as free/local (no usage spent, no viewer
+    // prompt) -- safe to call right after sample becomes available, and
+    // BEFORE any review-tab render runs, so the image-upload affordance can
+    // be gated on a real limits() result rather than assumed present.
+    state.imageLimits = null;
+    if (state.sample){
+      try{
+        var limits = await state.sample.limits();
+        if (limits && limits.images) state.imageLimits = limits.images;
+      }catch(e){ state.imageLimits = null; }
+    }
+  }
+
+  // ---------- review tab: range critique + screenshot comparison ----------
+  // Both features read canonical plan position directly from state.slots --
+  // NEVER a display-reversed copy. state.slots itself always stays
+  // newest-first canonical order (see renderPlan()'s own comment above); the
+  // fix-2 sort toggle (state.sortReversed) only affects the separate
+  // displaySlots view built inside renderPlan() and is not read here at all,
+  // so a range like "1..3" always means the same three plan slots regardless
+  // of what order the План tab currently displays them in.
+  function clampReviewRangeInputs(){
+    var max = Math.max(1, state.slots.length);
+    var fromEl = el("reviewRangeFrom"), toEl = el("reviewRangeTo");
+    fromEl.min = "1"; fromEl.max = String(max);
+    toEl.min = "1"; toEl.max = String(max);
+    var from = clampToRange(parseInt(fromEl.value, 10), 1, max);
+    var to = clampToRange(parseInt(toEl.value, 10), 1, max);
+    if (to < from) to = from;
+    fromEl.value = from;
+    toEl.value = to;
+    return {from: from, to: to};
+  }
+  function clampToRange(n, min, max){
+    if (isNaN(n)) n = min;
+    return Math.max(min, Math.min(max, n));
+  }
+
+  // Reads slots by CANONICAL array position (state.slots[i-1]), the same
+  // position renderPlan()'s badges and the Промт tab's cardSelect both number
+  // as №01, №02... -- deliberately not state.slots.slice().reverse().
+  function collectRangeSlots(from, to){
+    var out = [];
+    for (var i = from; i <= to; i++){
+      var s = state.slots[i - 1];
+      if (s) out.push({index: i, slot: s});
+    }
+    return out;
+  }
+
+  function describeRangeItemsForPrompt(rangeItems){
+    return rangeItems.map(function(item){
+      var pillar = pillarOf(item.slot.pillarType);
+      return "№" + item.index + " · " + pillar.label + " (" + pillar.density + ") — " + (item.slot.note || "без заметки");
+    }).join("\n");
+  }
+
+  // Range items plus each card's saved prompt (trimmed so many cards still fit the 64 KiB input cap).
+  function describeRangeWithPrompts(rangeItems){
+    var per = Math.max(600, Math.floor(40000 / Math.max(1, rangeItems.length)));
+    return rangeItems.map(function(item){
+      var pillar = pillarOf(item.slot.pillarType);
+      var lp = linkedPromptOf(item.slot);
+      return "№" + item.index + " · " + pillar.label + " — " + (item.slot.note || "без заметки")
+        + "\nПромт: " + (lp ? lp.text.slice(0, per) : "(не сохранён)");
+    }).join("\n\n");
+  }
+
+  function buildReviewCompareCardPrompt(slot, index){
+    var lp = linkedPromptOf(slot);
+    return "На приложенном изображении — скриншот уже опубликованного поста Instagram (или сгенерированной картинки). Сравни его с планом этой карточки и с промтом, по которому её генерировали.\n\n"
+      + "КАРТОЧКА ПЛАНА №" + index + ": тип «" + pillarOf(slot.pillarType).label + "»; идея: " + (slot.note || "без заметки") + "\n"
+      + (slot.caption ? "Текст поста: " + slot.caption.slice(0, 2000) + "\n" : "")
+      + "\nПРОМТ КАРТОЧКИ:\n" + (lp ? lp.text.slice(0, 40000) : "(промт не сохранён — сравнивай только с типом и идеей)") + "\n\n"
+      + "Ответь по-русски обычным текстом, без markdown-разметки, короткими пунктами в четырёх разделах:\n"
+      + "СОВПАЛО — что на изображении соответствует плану и промту (тип, сцена, свет, ракурс, реквизит, текст, палитра).\n"
+      + "НЕ СОВПАЛО — что отличается или отсутствует, конкретно.\n"
+      + "КАЧЕСТВО — искажения товара, ошибки в тексте на картинке, обрезанные элементы, если есть.\n"
+      + "ПОПРАВИТЬ В ПРОМТЕ — 2–5 конкретных формулировок, которые стоит добавить или изменить в промте, чтобы следующий результат был ближе к задуманному.";
+  }
+
+  function buildReviewAnalyzePrompt(rangeItems){
+    return "Ты редактор Instagram-плана карточек товара, в редакционном стиле. Ниже — последовательность карточек плана (диапазон №"
+      + rangeItems[0].index + "–№" + rangeItems[rangeItems.length - 1].index + "), в порядке плана:\n\n"
+      + describeRangeItemsForPrompt(rangeItems) + "\n\n"
+      + "Правило ритма (уже действует в этом приложении): плотные типы (Hero, Карусель) не должны идти подряд без воздушной карточки (Mood, Деталь, Цитата, Reels) между ними.\n\n"
+      + "Дай короткий конкретный разбор на русском языке, обычным текстом, без markdown-разметки: "
+      + "1) соблюдается ли в этом диапазоне чередование плотных и воздушных карточек; "
+      + "2) разумен ли микс типов карточек; "
+      + "3) для каждой карточки диапазона, где есть что улучшить — короткое конкретное предложение.";
+  }
+
+  function buildReviewCompareImagePrompt(rangeItems){
+    return "На приложенном изображении — скриншот уже опубликованных карточек Instagram (лента профиля). Сравни его с задуманным планом карточек ниже (диапазон №"
+      + rangeItems[0].index + "–№" + rangeItems[rangeItems.length - 1].index + "), включая промты, по которым их генерировали:\n\n"
+      + describeRangeWithPrompts(rangeItems) + "\n\n"
+      + "Дай короткий сравнительный вывод на русском языке, обычным текстом, без markdown-разметки: какие публикации соответствуют каким карточкам, что совпадает с планом и промтами, что отличается или отсутствует, как выглядит ритм ленты в целом и что поправить в промтах.";
+  }
+
+  // Gate the upload affordance on a `limits()` result computed at capability-
+  // load time (see initCapabilitiesLoad() below) -- never on a bare "does the
+  // file input exist" check. If state.imageLimits is null (either sample is
+  // unavailable, or this view's limits() had no `images` member), the whole
+  // reviewImageCard block stays hidden and no <input type="file"> affordance
+  // is ever revealed.
+  // The upload field is ALWAYS shown; limits() only refines the accepted
+  // types/size. Unavailability is explained on click, not by hiding the block.
+  var reviewMode = "card";
+  function renderReviewImageAffordance(){
+    el("reviewImageCard").hidden = false;
+    el("reviewCardField").hidden = reviewMode !== "card";
+    el("reviewCardInfo").hidden = reviewMode !== "card";
+    document.querySelectorAll("[data-review-mode]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.reviewMode === reviewMode); });
+    var base = reviewMode === "card"
+      ? "Приложите скриншот опубликованного поста — нейросеть сравнит его с идеей, типом и промтом карточки и подскажет, что поправить в промте."
+      : "Приложите скриншот ленты профиля — нейросеть сравнит опубликованное с карточками диапазона (см. выше) и их промтами.";
+    if (state.imageLimits){
+      el("reviewImageInput").setAttribute("accept", state.imageLimits.mediaTypes.join(","));
+      base += " Файл до " + Math.floor(state.imageLimits.maxInputBytes / (1024 * 1024)) + " МБ.";
+    }
+    el("reviewImageHint").textContent = base;
+    var sel = el("reviewCardSelect"), cur = sel.value;
+    sel.innerHTML = state.slots.length ? state.slots.map(function(s, i){
+      return '<option value="' + s.id + '">№' + String(i+1).padStart(2,"0") + " · " + escapeHtml(pillarOf(s.pillarType).label) + (s.linkedPromptId ? " ✓" : "") + " — " + escapeHtml((s.note || "").slice(0, 40)) + "</option>";
+    }).join("") : '<option value="">План пуст</option>';
+    if (cur && state.slots.some(function(s){ return s.id === cur; })) sel.value = cur;
+    updateReviewCardInfo();
+  }
+  function updateReviewCardInfo(){
+    var slot = state.slots.find(function(s){ return s.id === el("reviewCardSelect").value; });
+    el("reviewCardInfo").textContent = !slot ? "" : linkedPromptOf(slot)
+      ? "✓ У карточки есть сохранённый промт — он будет учтён при сравнении."
+      : "У карточки нет сохранённого промта — сравнение будет только с типом и идеей. Соберите промт во вкладке «Промт», чтобы получить советы по промту.";
+  }
+
+  function renderReviewPanel(){
+    var analyzeBtn = el("reviewAnalyzeBtn");
+    analyzeBtn.disabled = false;
+    analyzeBtn.removeAttribute("title");
+    clampReviewRangeInputs();
+    el("reviewRangeHint").textContent = state.slots.length
+      ? "В плане " + state.slots.length + " карточ" + (state.slots.length === 1 ? "ка" : "ек") + " (от №01 до №" + String(state.slots.length).padStart(2, "0") + ")."
+      : "План пуст — сначала создайте план во вкладке «План».";
+    renderReviewImageAffordance();
+  }
+
+  function validateReviewImageFile(file){
+    if (!file) return "Выберите файл скриншота.";
+    var types = state.imageLimits ? state.imageLimits.mediaTypes : ["image/png","image/jpeg","image/webp","image/gif"];
+    var maxBytes = state.imageLimits ? state.imageLimits.maxInputBytes : 20 * 1024 * 1024;
+    if (types.indexOf(file.type) === -1){
+      return "Неподдерживаемый формат файла — используйте: " + types.join(", ") + ".";
+    }
+    if (file.size > maxBytes){
+      return "Файл слишком большой — максимум " + Math.floor(maxBytes / (1024 * 1024)) + " МБ.";
+    }
+    return null;
+  }
+
+  async function onReviewAnalyze(){
+    var sample = await getSample();
+    if (!sample){ setStatus("reviewAnalyzeStatus", NO_AI_TEXT, true); return; }
+    var range = clampReviewRangeInputs();
+    var rangeItems = collectRangeSlots(range.from, range.to);
+    var btn = el("reviewAnalyzeBtn"), statusEl = el("reviewAnalyzeStatus"), outEl = el("reviewAnalyzeOutput");
+    outEl.hidden = true;
+    if (!rangeItems.length){
+      statusEl.hidden = false; statusEl.textContent = "В плане нет карточек в этом диапазоне.";
+      return;
+    }
+    btn.disabled = true;
+    statusEl.hidden = false; statusEl.textContent = "Анализирую…";
+    try{
+      var result = await sample(buildReviewAnalyzePrompt(rangeItems), {cache:false});
+      outEl.hidden = false; outEl.textContent = result.text;
+      statusEl.hidden = true;
+    }catch(e){
+      var code = e && e.code;
+      statusEl.hidden = false;
+      statusEl.textContent = (code && ADJUST_ERROR_MESSAGES[code]) || ("Не удалось выполнить проверку (" + (code || "неизвестная ошибка") + ") — попробуйте ещё раз.");
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  async function onReviewCompare(){
+    var fileInput = el("reviewImageInput");
+    var file = fileInput.files && fileInput.files[0];
+    var statusEl = el("reviewCompareStatus"), outEl = el("reviewCompareOutput"), btn = el("reviewCompareBtn");
+    outEl.hidden = true;
+    var validationError = validateReviewImageFile(file);
+    if (validationError){
+      statusEl.hidden = false; statusEl.textContent = validationError;
+      return;
+    }
+    var prompt;
+    if (reviewMode === "card"){
+      var slot = state.slots.find(function(s){ return s.id === el("reviewCardSelect").value; });
+      if (!slot){ statusEl.hidden = false; statusEl.textContent = "Выберите карточку плана."; return; }
+      prompt = buildReviewCompareCardPrompt(slot, state.slots.indexOf(slot) + 1);
+    } else {
+      var range = clampReviewRangeInputs();
+      var rangeItems = collectRangeSlots(range.from, range.to);
+      if (!rangeItems.length){
+        statusEl.hidden = false; statusEl.textContent = "В плане нет карточек в этом диапазоне.";
+        return;
+      }
+      prompt = buildReviewCompareImagePrompt(rangeItems);
+    }
+    btn.disabled = true;
+    statusEl.hidden = false; statusEl.textContent = "Подключаю ИИ…";
+    var sample = await getSample();
+    if (!sample){ statusEl.textContent = NO_AI_TEXT; btn.disabled = false; return; }
+    statusEl.textContent = "Сравниваю… (со скриншотом обычно 20–60 секунд)";
+    try{
+      var result = await sample(prompt, {images:file, cache:false, onText: function(u){ outEl.hidden = false; outEl.textContent = u.text; }});
+      outEl.hidden = false; outEl.textContent = result.text;
+      statusEl.hidden = true;
+    }catch(e){
+      var code = e && e.code;
+      statusEl.hidden = false;
+      statusEl.textContent = (code && ADJUST_ERROR_MESSAGES[code]) || ("Не удалось сравнить (" + (code || "неизвестная ошибка") + ") — попробуйте ещё раз.");
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  async function initDbLoad(){
+    var db = null;
+    try{ db = window.claude ? await window.claude.use("db") : null; }catch(e){ db = null; }
+    if (!db){
+      el("offlineBanner").hidden = false;
+      state.slots = SEED_SLOTS;
+      return;
+    }
+    state.db = db; state.online = true;
+
+    try{
+      var planSnap = await db.doc("plan/main").get();
+      // An existing (even empty, after «Очистить план») plan is respected; seed only on first run.
+      if (planSnap.exists && Array.isArray(planSnap.data().slots)){
+        state.slots = planSnap.data().slots;
+      } else {
+        state.slots = SEED_SLOTS;
+        await db.doc("plan/main").set({slots: state.slots});
+      }
+    }catch(e){
+      // Cloud unreachable: show the stand-in plan but block every write, so it can never overwrite the real one.
+      console.warn(e);
+      state.slots = SEED_SLOTS;
+      state.online = false;
+      el("offlineBanner").hidden = false;
+    }
+
+    try{
+      var custSnap = await db.doc("config/customLists").get();
+      if (custSnap.exists){
+        var d = custSnap.data();
+        ["compositions","locations","light","angles","props","accentColors"].forEach(function(k){
+          state.custom[k] = Array.isArray(d[k]) ? d[k] : [];
+        });
+      }
+    }catch(e){ console.warn(e); }
+
+    try{
+      var promptSnap = await db.collection("prompts").get();
+      state.prompts = promptSnap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); })
+        .sort(function(a,b){ return (b.createdAt||"").localeCompare(a.createdAt||""); });
+    }catch(e){ console.warn(e); }
+  }
+
+  function renderAll(){
+    renderStaticLists();
+    renderCardSelect();
+    renderPlan();
+    renderSettings();
+    renderReviewPanel();
+  }
+
+  async function boot(){
+    await Promise.all([initCapabilitiesLoad(), initDbLoad()]);
+    renderAll();
+  }
+
+  // ---------- connection panel + backup (web build) ----------
+  function setHint(id, text, warn){
+    var s = el(id); s.hidden = !text; s.textContent = text || "";
+    s.style.color = warn ? "var(--rust-deep)" : "var(--sage)";
+  }
+  function connErrText(e){
+    var code = e && e.code;
+    return (code && ADJUST_ERROR_MESSAGES[code]) || (e && e.message) || "ошибка";
+  }
+  function updateConnStatus(){
+    var a = window.__atelier, c = a.getCfg();
+    el("connStatus").innerHTML = "<span>Данные: <b>" + (a.cloud() ? "облако Supabase" : "только этот браузер") + "</b></span>"
+      + "<span>ИИ: <b>" + (c.anthropicKey ? "ключ задан" : "нет ключа") + "</b></span>";
+  }
+  function initConnectionPanel(){
+    var a = window.__atelier, c = a.getCfg();
+    el("cfgSupaUrl").value = c.supaUrl; el("cfgSupaKey").value = c.supaKey; el("cfgAnthKey").value = c.anthropicKey;
+    el("cfgModelDefault").value = c.modelDefault; el("cfgModelQuick").value = c.modelQuick;
+    updateConnStatus();
+    function readForm(){
+      return {supaUrl: el("cfgSupaUrl").value.trim(), supaKey: el("cfgSupaKey").value.trim(), anthropicKey: el("cfgAnthKey").value.trim(),
+        modelDefault: el("cfgModelDefault").value, modelQuick: el("cfgModelQuick").value};
+    }
+    el("cfgSave").addEventListener("click", function(){
+      var before = a.getCfg(), next = readForm();
+      a.setCfg(next);
+      updateConnStatus();
+      if (before.supaUrl !== next.supaUrl || before.supaKey !== next.supaKey){
+        showToast("Сохранено — перезагружаю, чтобы подключить данные");
+        setTimeout(function(){ location.reload(); }, 700);
+      } else showToast("Подключение сохранено");
+    });
+    el("cfgTestSupa").addEventListener("click", async function(){
+      a.setCfg(readForm()); updateConnStatus();
+      setHint("cfgSupaStatus", "Проверяю…");
+      try{ setHint("cfgSupaStatus", "✓ " + await a.testSupabase()); }
+      catch(e){ setHint("cfgSupaStatus", "✗ " + (e && e.message || "ошибка"), true); }
+    });
+    el("cfgTestAnth").addEventListener("click", async function(){
+      a.setCfg(readForm()); updateConnStatus();
+      setHint("cfgAnthStatus", "Проверяю…");
+      try{ setHint("cfgAnthStatus", "✓ " + await a.testAnthropic()); }
+      catch(e){ setHint("cfgAnthStatus", "✗ " + connErrText(e), true); }
+    });
+    el("exportBtn").addEventListener("click", function(){
+      var data = {version: 1, exportedAt: new Date().toISOString(), slots: state.slots, custom: state.custom, prompts: state.prompts};
+      var url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: "application/json"}));
+      var link = document.createElement("a");
+      link.href = url; link.download = "atelier-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      setHint("backupStatus", "Копия скачана.");
+    });
+    el("importBtn").addEventListener("click", async function(){
+      var file = el("importInput").files && el("importInput").files[0];
+      if (!file){ setHint("backupStatus", "Сначала выберите файл .json.", true); return; }
+      try{
+        var data = JSON.parse(await file.text());
+        if (!data || !Array.isArray(data.slots)) throw new Error("В файле нет списка карточек (slots).");
+        if (!confirm("Заменить текущий план (" + state.slots.length + " карточек) на " + data.slots.length + " из файла?")) return;
+        state.slots = data.slots.map(function(s){
+          return Object.assign({linkedPromptId: null, defaults: null}, s, {id: s.id || cryptoId(), pillarType: PILLARS[s.pillarType] ? s.pillarType : "HERO"});
+        });
+        if (data.custom){
+          Object.keys(state.custom).forEach(function(k){ if (Array.isArray(data.custom[k])) state.custom[k] = data.custom[k]; });
+          await persistCustom();
+        }
+        if (Array.isArray(data.prompts)){
+          state.prompts = data.prompts.filter(function(p){ return p && p.id; });
+          for (var i = 0; i < state.prompts.length; i++){
+            try{ await state.db.collection("prompts").doc(state.prompts[i].id).set(state.prompts[i]); }catch(e){ console.warn(e); }
+          }
+        }
+        var ok = await persistSlots();
+        renderAll();
+        setHint("backupStatus", "Загружено карточек: " + state.slots.length + (ok ? "." : ". Но сохранить в хранилище не удалось — проверьте подключение."), !ok);
+      }catch(e){ setHint("backupStatus", "Не получилось: " + (e && e.message || e), true); }
+    });
+  }
+
+  function init(){
+    initTabs();
+    el("cardSelect").addEventListener("change", onCardChange);
+    el("modeOverrideSelect").addEventListener("change", updateEffectiveUI);
+    el("compositionSelect").addEventListener("change", updateCompositionHint);
+    el("generateBtn").addEventListener("click", onGenerate);
+    el("copyBtn").addEventListener("click", onCopy);
+    el("saveToPlanBtn").addEventListener("click", onSaveToPlan);
+    el("generatePlanBtn").addEventListener("click", onGeneratePlan);
+    el("clearPlanBtn").addEventListener("click", onClearPlan);
+    el("refinePromptBtn").addEventListener("click", onRefinePrompt);
+    el("captionBtn").addEventListener("click", onCaption);
+    el("saveCaptionBtn").addEventListener("click", onSaveCaption);
+    el("copyCaptionBtn").addEventListener("click", function(){ if (el("captionOutput").value.trim()) copyText(el("captionOutput").value); });
+    el("promptOutput").addEventListener("input", function(){
+      // Hand edits count as this card's prompt; "Сохранить в карточку" stores them.
+      var slot = currentSlot();
+      if (slot && (!lastBuilt || lastBuilt.slotId !== slot.id)){
+        lastBuilt = {slotId: slot.id, pillarType: effectiveType(), compositionLabel: null, location: null, angle: null, source: "manual", createdAt: new Date().toISOString()};
+      }
+    });
+    el("planCount").addEventListener("input", renderPostRows);
+    el("postRows").addEventListener("change", onPostRowsInput);
+    el("postRows").addEventListener("input", onPostRowsInput);
+    el("postRows").addEventListener("click", onPostRowsClick);
+    el("resetPostRowsBtn").addEventListener("click", function(){ postRowState = []; renderPostRows(); });
+    el("reviewCardSelect").addEventListener("change", updateReviewCardInfo);
+    document.querySelectorAll("[data-review-mode]").forEach(function(b){
+      b.addEventListener("click", function(){ reviewMode = b.dataset.reviewMode; renderReviewImageAffordance(); });
+    });
+    el("addSlotBtn").addEventListener("click", onAddSlot);
+    el("planGrid").addEventListener("click", onPlanGridClick);
+    el("listEditors").addEventListener("click", onSettingsClick);
+    el("appRoot").addEventListener("click", onAppRootClick);
+    el("reviewAnalyzeBtn").addEventListener("click", onReviewAnalyze);
+    el("reviewCompareBtn").addEventListener("click", onReviewCompare);
+    el("reviewRangeFrom").addEventListener("change", clampReviewRangeInputs);
+    el("reviewRangeTo").addEventListener("change", clampReviewRangeInputs);
+    el("planSortOrder").addEventListener("change", function(){
+      state.sortReversed = el("planSortOrder").value === "old";
+      renderPlan();
+    });
+    el("propsChips").addEventListener("click", function(e){
+      var chip = e.target.closest(".chip[data-prop]");
+      if (!chip) return;
+      var p = chip.dataset.prop;
+      if (selectedProps.has(p)) selectedProps.delete(p); else selectedProps.add(p);
+      chip.setAttribute("aria-pressed", selectedProps.has(p));
+    });
+    el("planDefPropsChips").addEventListener("click", function(e){
+      var chip = e.target.closest(".chip[data-plan-def-prop]");
+      if (!chip) return;
+      var p = chip.dataset.planDefProp;
+      if (planDefSelectedProps.has(p)) planDefSelectedProps.delete(p); else planDefSelectedProps.add(p);
+      chip.setAttribute("aria-pressed", planDefSelectedProps.has(p));
+    });
+    initConnectionPanel();
+    boot();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+
+<script>
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
+</script>
+</body>
+</html>
