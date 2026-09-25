@@ -478,7 +478,7 @@
     else html = viewFeed();
     view.innerHTML = (S.online ? "" : '<div class="banner warn">База недоступна: показаны сохранённые на устройстве данные, изменения не сохраняются. Проверьте Профиль → Подключение.</div>') + html;
     document.querySelectorAll("#nav [data-nav]").forEach(a => {
-      const on = a.dataset.nav === r.name || (a.dataset.nav === "feed" && (r.name === "post" || r.name === "plan-new"));
+      const on = a.dataset.nav === r.name || (a.dataset.nav === "feed" && (r.name === "post" || r.name === "plan-new")) || (a.dataset.nav === "profile" && r.name === "chat");
       a.classList.toggle("on", on);
       if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
@@ -1028,6 +1028,7 @@
       + item("lists", "list", "Списки сцен", "локации, свет, ракурсы, реквизит")
       + item("backup", "upload", "Резервная копия", "скачать или загрузить все данные")
       + item("help", "ideas", "Как пользоваться", "5 шагов от идеи до статистики")
+      + '<a class="menu-item" href="#/chat">' + icon("spark") + "<span><b>Чат</b><small>массовые изменения: товары, план, бренд</small></span>" + icon("chevron", "go") + "</a>"
       + "</nav>"
       + '<section class="card"><h3>Тема</h3><div class="seg wide">' + [["", "Авто"], ["light", "Светлая"], ["dark", "Тёмная"]].map(([v, l]) => '<button class="' + (theme === v ? "on" : "") + '" data-act="theme" data-v="' + v + '">' + l + "</button>").join("") + "</div></section>"
       + '<p class="hint center">web 2026-09-25 · 2.0</p>';
@@ -1226,7 +1227,7 @@
   }
   function viewChat(){
     S.ui.chat = S.ui.chat || [];
-    let h = topbar("Чат", {sub: "Массовые изменения: товары, план, бренд"});
+    let h = topbar("Чат", {sub: "Массовые изменения: товары, план, бренд", back: "profile"});
     h += '<div class="chat-thread">'
       + (S.ui.chat.length ? S.ui.chat.map(chatMsgHtml).join("") : '<p class="muted center pad">Опишите, что добавить или изменить — например: «Добавь 3 товара: …». Ничего не сохранится, пока вы не нажмёте «Применить».</p>')
       + (busy("chat") ? '<div class="chat-busy"><span class="spin"></span>' + esc(busy("chat")) + "</div>" : "")
