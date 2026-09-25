@@ -65,7 +65,8 @@
     save: "ok", saveErr: "",
     ui: {
       feedView: lsGet("atelier.ui.feedView", "grid"), feedFilter: "all", postTab: "image", fresh: {},
-      wiz: null, results: {}, copied: {}, navCount: 0, lastRoute: ""
+      wiz: null, results: {}, copied: {}, navCount: 0, lastRoute: "",
+      chat: [], chatAttachment: null, chatAttachmentName: ""
     }
   };
 
@@ -472,6 +473,7 @@
     else if (r.name === "ideas") html = viewIdeas(r.a || "bank");
     else if (r.name === "growth") html = viewGrowth(r.a || "stats");
     else if (r.name === "profile") html = viewProfile(r.a, r.b);
+    else if (r.name === "chat") html = viewChat();
     else if (r.name === "plan-new") html = viewPlanNew(r.a);
     else html = viewFeed();
     view.innerHTML = (S.online ? "" : '<div class="banner warn">База недоступна: показаны сохранённые на устройстве данные, изменения не сохраняются. Проверьте Профиль → Подключение.</div>') + html;
@@ -1149,6 +1151,128 @@
       + '<section class="card"><h3>На что работаем</h3><p>Пересылки в директ и сохранения важнее лайков; в Reels решают первые 3 секунды; Instagram ищет по словам в подписи. Текст и картинку для сетки держите в центре — края срезаются в превью 3:4.</p></section>';
   }
 
+  // ---------------------------------------------------------------- Чат
+  const PRODUCT_FIELD_LABELS = {name: "Название", category: "Категория", price: "Цена", link: "Ссылка", material: "Материал", color: "Цвет",
+    height: "Высота, см", width: "Ширина, см", depth: "Глубина, см", accent: "Акцент карточек", benefits: "Преимущества",
+    keywords: "Ключевые слова", room: "Комната", care: "Уход", distortions: "Что ИИ искажает", masterShot: "Мастер-кадр"};
+  const SLOT_FIELD_LABELS = {date: "Дата", time: "Время", pillarType: "Тип", rubric: "Рубрика", goal: "Цель", note: "Идея", event: "Повод", productId: "Товар"};
+  function fmtFieldVal(v){
+    if (Array.isArray(v)) return v.filter(Boolean).join(", ") || "—";
+    if (v === "" || v == null) return "—";
+    if (v === true) return "да";
+    if (v === false) return "нет";
+    return String(v);
+  }
+  function describeChatAction(a){
+    if (a.type === "product.upsert"){
+      const existing = a.id ? productById(a.id) : null;
+      const fields = a.fields || {};
+      const rows = Object.keys(fields).map(k => ({label: PRODUCT_FIELD_LABELS[k] || k, oldVal: existing ? fmtFieldVal(existing[k]) : null, newVal: fmtFieldVal(fields[k])}));
+      return {tag: existing ? "Обновление" : "Новый товар", upd: !!existing, title: (existing && existing.name) || fields.name || "Товар без названия", rows, missing: !!a.id && !existing};
+    }
+    if (a.type === "product.delete"){
+      const p = a.id ? productById(a.id) : null;
+      return {tag: "Удаление товара", upd: true, title: p ? (p.name || "Товар без названия") : "Товар не найден", rows: [], missing: !p};
+    }
+    if (a.type === "slot.upsert"){
+      const existing = a.id ? slotById(a.id) : null;
+      const fields = a.fields || {};
+      const rows = Object.keys(fields).map(k => {
+        let nv = fields[k];
+        if (k === "productId") nv = (productById(nv) || {}).name || nv;
+        if (k === "pillarType") nv = (P.pillarOf(nv) || {}).label || nv;
+        if (k === "goal") nv = P.goalLabel(nv) || nv;
+        return {label: SLOT_FIELD_LABELS[k] || k, oldVal: existing ? fmtFieldVal(k === "productId" ? (productOf(existing) || {}).name : existing[k]) : null, newVal: fmtFieldVal(nv)};
+      });
+      return {tag: existing ? "Обновление поста" : "Новый пост", upd: !!existing, title: existing ? "№" + existing.num : "Новый пост в плане", rows, missing: !!a.id && !existing};
+    }
+    if (a.type === "brand.update"){
+      const fields = a.fields || {};
+      const rows = Object.keys(fields).map(k => ({label: k, oldVal: fmtFieldVal(S.brand[k]), newVal: fmtFieldVal(fields[k])}));
+      return {tag: "Обновление бренда", upd: true, title: "Бренд", rows, missing: false};
+    }
+    return {tag: "Неизвестное действие", upd: false, title: String(a.type || "?"), rows: [], missing: true};
+  }
+  function chatActionCard(a, mi, ai){
+    const d = describeChatAction(a);
+    const rows = d.rows.map(r => '<div class="chat-diff-row"><span class="k">' + esc(r.label) + "</span>"
+      + (r.oldVal != null && r.oldVal !== r.newVal ? '<span class="old">' + esc(r.oldVal) + "</span> → " : "")
+      + '<span class="new">' + esc(r.newVal) + "</span></div>").join("");
+    const done = !!a.applied, off = !!a.dismissed;
+    return '<div class="chat-card' + (done ? " applied" : "") + (off ? " dismissed" : "") + '">'
+      + '<div class="chat-card-top"><span class="tag' + (d.upd ? " upd" : "") + '">' + esc(d.tag) + "</span><b>" + esc(d.title) + "</b>"
+      + (done ? '<span class="chat-applied">' + icon("check") + "Применено</span>" : off ? '<span class="chat-dismissed">Отклонено</span>' : "") + "</div>"
+      + (rows || '<p class="muted sm">Без изменения полей.</p>')
+      + (d.missing ? '<p class="hint warn-t">Запись не найдена — возможно, уже удалена.</p>' : "")
+      + (!done && !off ? '<div class="chat-card-actions"><button class="btn primary sm" data-act="applyChatAction" data-mi="' + mi + '" data-ai="' + ai + '">Применить</button>'
+        + '<button class="btn ghost sm" data-act="dismissChatAction" data-mi="' + mi + '" data-ai="' + ai + '">Отклонить</button></div>' : "")
+      + "</div>";
+  }
+  function chatMsgHtml(m, mi){
+    if (m.role === "user"){
+      return '<div class="chat-msg user"><div class="chat-bubble">' + esc(m.text || "") + "</div>"
+        + (m.attachmentName ? '<div class="chat-att">' + icon("image") + esc(m.attachmentName) + "</div>" : "") + "</div>";
+    }
+    let h = '<div class="chat-msg bot"><div class="chat-bubble">' + esc(m.text || "") + "</div></div>";
+    const actions = (m.actions || []).filter(a => a && a.type);
+    if (actions.length){
+      const pending = actions.filter(a => !a.applied && !a.dismissed);
+      h += '<div class="chat-plan"><div class="chat-plan-head"><b>Предпросмотр изменений</b><span class="chat-plan-count">' + pending.length + " из " + actions.length + " не применено</span></div>"
+        + actions.map((a, ai) => chatActionCard(a, mi, ai)).join("")
+        + (pending.length > 1 ? '<div class="row" style="justify-content:flex-end"><button class="btn primary" data-act="applyAllChatActions" data-mi="' + mi + '">Применить оставшиеся ' + pending.length + "</button></div>" : "")
+        + "</div>";
+    }
+    return h;
+  }
+  function viewChat(){
+    S.ui.chat = S.ui.chat || [];
+    let h = topbar("Чат", {sub: "Массовые изменения: товары, план, бренд"});
+    h += '<div class="chat-thread">'
+      + (S.ui.chat.length ? S.ui.chat.map(chatMsgHtml).join("") : '<p class="muted center pad">Опишите, что добавить или изменить — например: «Добавь 3 товара: …». Ничего не сохранится, пока вы не нажмёте «Применить».</p>')
+      + (busy("chat") ? '<div class="chat-busy"><span class="spin"></span>' + esc(busy("chat")) + "</div>" : "")
+      + "</div>";
+    h += '<div class="chat-composer">'
+      + (S.ui.chatAttachmentName ? '<div class="chat-att-chip">' + icon("image") + esc(S.ui.chatAttachmentName)
+        + '<button class="x" data-act="removeChatAttachment" aria-label="Убрать вложение">' + icon("x") + "</button></div>" : "")
+      + '<div class="row nowrap">'
+      + '<label class="icon-btn sm" aria-label="Прикрепить файл">' + icon("upload") + '<input type="file" accept="image/*" hidden data-upload="chatFile"></label>'
+      + '<textarea id="chatInput" rows="1" placeholder="Опишите, что добавить или изменить…"' + (busy("chat") ? " disabled" : "") + "></textarea>"
+      + '<button class="icon-btn primary" data-act="sendChat" aria-label="Отправить"' + (busy("chat") ? " disabled" : "") + ">" + icon("chevron") + "</button>"
+      + "</div>"
+      + '<p class="hint">Файлы к сообщению — до 5 МБ. Изменения применяются только после «Применить».</p></div>';
+    return h;
+  }
+  async function applyChatAction(a){
+    if (a.type === "product.upsert"){
+      let p = a.id ? productById(a.id) : null;
+      if (!p) p = addProduct();
+      Object.assign(p, a.fields || {});
+      await persistProduct(p);
+      return p;
+    }
+    if (a.type === "product.delete"){
+      const p = a.id ? productById(a.id) : null;
+      if (!p) throw {code: "invalid_request", message: "товар не найден"};
+      S.products = S.products.filter(x => x.id !== p.id);
+      S.slots.forEach(s => { if (s.productId === p.id) s.productId = ""; });
+      await saveDoc("products/" + p.id, {deleted: true});
+      return p;
+    }
+    if (a.type === "slot.upsert"){
+      let s = a.id ? slotById(a.id) : null;
+      if (!s) s = newSlot(a.fields || {});
+      else { Object.assign(s, a.fields || {}); touch(s); }
+      await persistSlots();
+      return s;
+    }
+    if (a.type === "brand.update"){
+      Object.assign(S.brand, a.fields || {});
+      await persistBrand();
+      return S.brand;
+    }
+    throw {code: "invalid_request", message: "неизвестное действие"};
+  }
+
   // ================================================================ привязка полей
   function getPath(o, path){ return path.split(".").reduce((a, k) => a == null ? undefined : a[k], o); }
   function setPath(o, path, v){
@@ -1500,6 +1624,52 @@
     S.slots.forEach(s => { if (s.productId === p.id) s.productId = ""; });
     await saveDoc("products/" + p.id, {deleted: true}); await persistSlots(); go("profile/products");
   };
+  // чат
+  H.removeChatAttachment = () => { S.ui.chatAttachment = null; S.ui.chatAttachmentName = ""; renderView(true); };
+  H.sendChat = async () => {
+    if (busy("chat")) return;
+    const inp = $("#chatInput");
+    const text = inp ? inp.value.trim() : "";
+    const file = S.ui.chatAttachment;
+    if (!text && !file) return;
+    if (needKey()) return;
+    S.ui.chat = S.ui.chat || [];
+    S.ui.chat.push({role: "user", text, attachmentName: S.ui.chatAttachmentName || ""});
+    if (inp) inp.value = "";
+    S.ui.chatAttachment = null; S.ui.chatAttachmentName = "";
+    setBusy("chat", "Думаю…");
+    try{
+      const history = S.ui.chat.slice(0, -1).map(m => ({role: m.role, text: m.text}));
+      const res = await aiJson(P.chatRequest({message: text, history, products: S.products, slots: S.slots.slice(-20), brand: S.brand}),
+        Object.assign({maxTokens: 3000}, file ? {images: file} : {}));
+      const actions = Array.isArray(res.actions) ? res.actions.filter(a => a && a.type) : [];
+      S.ui.chat.push({role: "assistant", text: String(res.reply || "Готово.").trim(), actions});
+    }catch(e){
+      S.ui.chat.push({role: "assistant", text: P.errorText(e, "Не получилось"), actions: []});
+    }
+    setBusy("chat", null);
+  };
+  H.applyChatAction = async el => {
+    const m = S.ui.chat[Number(el.dataset.mi)], a = m && m.actions[Number(el.dataset.ai)];
+    if (!a || a.applied || a.dismissed) return;
+    try{ await applyChatAction(a); a.applied = true; toast("Применено."); renderView(true); }
+    catch(e){ toast(P.errorText(e, "Не удалось применить"), true); }
+  };
+  H.dismissChatAction = el => {
+    const m = S.ui.chat[Number(el.dataset.mi)], a = m && m.actions[Number(el.dataset.ai)];
+    if (!a) return;
+    a.dismissed = true; renderView(true);
+  };
+  H.applyAllChatActions = async el => {
+    const m = S.ui.chat[Number(el.dataset.mi)]; if (!m) return;
+    for (const a of m.actions){
+      if (a.applied || a.dismissed) continue;
+      try{ await applyChatAction(a); a.applied = true; }
+      catch(e){ toast(P.errorText(e, "Не удалось применить"), true); }
+    }
+    renderView(true);
+  };
+
   H.addRubric = () => { S.brand.rubrics = (S.brand.rubrics || JSON.parse(JSON.stringify(P.DEFAULT_RUBRICS))).concat([{name: "Новая", share: 0, goal: "saves"}]); persistBrand(); renderView(true); };
   H.delRubric = el => { S.brand.rubrics = (S.brand.rubrics || JSON.parse(JSON.stringify(P.DEFAULT_RUBRICS))); S.brand.rubrics.splice(Number(el.dataset.i), 1); persistBrand(); renderView(true); };
   H.addCustom = async el => {
@@ -1577,6 +1747,11 @@
     if (!/^image\//.test(file.type)){ toast("Нужна картинка (PNG, JPG, WEBP).", true); return; }
     const kind = el.dataset.upload, s = el.dataset.id ? slotById(el.dataset.id) : null;
     try{
+      if (kind === "chatFile"){
+        if (file.size > 5 * 1024 * 1024){ toast("Файл больше 5 МБ — выберите файл поменьше.", true); return; }
+        S.ui.chatAttachment = file; S.ui.chatAttachmentName = file.name; renderView(true);
+        return;
+      }
       if (kind === "image" && s){
         const th = await resize(file, 540, 0.78);
         const full = await resize(file, 1568, 0.86);
