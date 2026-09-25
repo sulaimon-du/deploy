@@ -661,6 +661,43 @@
       + (o.products ? "\nТовары: " + o.products : "");
   }
 
+  // ---------------------------------------------------------------- чат управления данными
+  function chatContextBlock(o){
+    var L = [];
+    L.push("ТОВАРЫ В КАТАЛОГЕ (id · название):");
+    L.push((o.products || []).length ? o.products.map(function(p){ return p.id + " · " + (p.name || "без названия"); }).join("\n") : "(пусто)");
+    if (o.slots && o.slots.length){
+      L.push("");
+      L.push("ПОСЛЕДНИЕ ПОСТЫ ПЛАНА (id · номер · дата · тип):");
+      L.push(o.slots.map(function(s){ return s.id + " · №" + s.num + " · " + (s.date || "без даты") + " · " + pillarOf(s.pillarType).label; }).join("\n"));
+    }
+    return L.join("\n");
+  }
+  function chatRequest(o){
+    var L = [];
+    L.push('Ты ассистент внутри приложения планирования Instagram магазина декора для дома. Отвечай СТРОГО одним JSON-объектом без markdown:');
+    L.push('{"reply":"короткий ответ пользователю по-русски","actions":[ДЕЙСТВИЕ, ...]}');
+    L.push("");
+    L.push("Каждое ДЕЙСТВИЕ — один из вариантов:");
+    L.push('{"type":"product.upsert","id":"(id существующего товара, если это изменение — иначе не указывай поле id)","fields":{"name":"…","category":"…","price":"…","link":"…","material":"…","color":"…","height":0,"width":0,"depth":0,"accent":"…","benefits":["…"],"keywords":"…","room":"…","care":"…","distortions":"…"}}');
+    L.push('{"type":"product.delete","id":"id товара"}');
+    L.push('{"type":"slot.upsert","id":"(id существующего поста, если это изменение)","fields":{"date":"ГГГГ-ММ-ДД","time":"ЧЧ:ММ","pillarType":"HERO|MOOD|MACRO|CAROUSEL|QUOTE|REELS","rubric":"…","goal":"saves|shares|sales|engage|reach","note":"…","productId":"id товара","event":"…"}}');
+    L.push('{"type":"brand.update","fields":{"…поле бренда…":"…новое значение…"}}');
+    L.push("");
+    L.push("Правила: указывай в fields только те поля, которые нужно установить или изменить — не переписывай нетронутые поля. Для product.upsert/slot.upsert указывай id, только если это правка существующей записи из списка ниже (сопоставляй по названию/номеру); если пользователь описывает новую запись — не указывай id. Если сообщение не описывает изменение данных (вопрос, уточнение) — верни actions: []. Не выдумывай данные, которых нет в сообщении пользователя или на приложенном изображении.");
+    L.push("");
+    L.push(chatContextBlock(o));
+    if (o.brand && o.brand.name) L.push("\nБренд: " + o.brand.name + (o.brand.niche ? " · " + o.brand.niche : ""));
+    if (o.history && o.history.length){
+      L.push("");
+      L.push("ИСТОРИЯ ДИАЛОГА:");
+      L.push(o.history.map(function(m){ return (m.role === "user" ? "Пользователь: " : "Ассистент: ") + clip(m.text, 2000); }).join("\n"));
+    }
+    L.push("");
+    L.push("НОВОЕ СООБЩЕНИЕ ПОЛЬЗОВАТЕЛЯ: " + (o.message || "(без текста, см. приложенное изображение)"));
+    return L.join("\n");
+  }
+
   var ERRORS = {
     cancelled: "Запрос отменён.",
     invalid_request: "Ошибка запроса — обновите страницу и повторите.",
@@ -703,6 +740,7 @@
     rates: rates, score: score, insightsRequest: insightsRequest,
     reviewRangeRequest: reviewRangeRequest, gridRequest: gridRequest, feedScreenshotRequest: feedScreenshotRequest,
     profileAuditRequest: profileAuditRequest, competitorRequest: competitorRequest, collabRequest: collabRequest,
+    chatRequest: chatRequest,
     errorText: errorText
   };
   if (typeof module !== "undefined" && module.exports) module.exports = P;
