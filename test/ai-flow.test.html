@@ -1,0 +1,98 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Сквозной тест ИИ-цепочки (фиктивный Anthropic)</title>
+<pre id="out">running…</pre>
+<iframe id="f" style="width:390px;height:844px;border:0"></iframe>
+<script>
+/* Подменяет fetch к api.anthropic.com во фрейме и проверяет «Создать всё», доработку/отмену, проверку картинки, план с идеями ИИ.
+   Внимание: очищает данные приложения в этом браузере. */
+(async function(){
+  var out = [], fails = 0, calls = [];
+  function ok(c, n){ out.push((c ? "PASS " : "FAIL ") + n); if (!c) fails++; }
+  var sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+  var f = document.getElementById("f");
+  for (var i = localStorage.length - 1; i >= 0; i--){ var k = localStorage.key(i); if (k && k.indexOf("atelier.") === 0) localStorage.removeItem(k); }
+  localStorage.setItem("atelier.cfg.v1", JSON.stringify({anthropicKey: "sk-test"}));
+  localStorage.setItem("atelier.kv.config/brand", JSON.stringify({name: "Тест", postsPerWeek: 3, codeWord: "ХОЧУ"}));
+  localStorage.setItem("atelier.kv.products/p1", JSON.stringify({id: "p1", name: "Ваза «Дюна»", height: 30, createdAt: "2026-01-01"}));
+  function reply(text){ return new Response(JSON.stringify({content: [{type: "text", text: text}], stop_reason: "end_turn"}), {status: 200, headers: {"content-type": "application/json"}}); }
+  function mockFetch(url, init){
+    if (String(url).indexOf("api.anthropic.com") < 0) return window.fetch(url, init);
+    var body = JSON.parse(init.body), msg = body.messages[body.messages.length - 1].content;
+    var text = typeof msg === "string" ? msg : msg.filter(function(b){ return b.type === "text"; })[0].text;
+    var hasImage = typeof msg !== "string";
+    calls.push({text: text.slice(0, 80), image: hasImage});
+    if (/JSON-массивом из (\d+)/.test(text)){ var n = +RegExp.$1, a = []; for (var j = 0; j < n; j++) a.push("ИИ-идея " + (j + 1)); return Promise.resolve(reply(JSON.stringify(a))); }
+    if (text.indexOf("Первая строка строго «СЦЕНА") >= 0 || text.indexOf("первая строка строго «СЦЕНА") >= 0) return Promise.resolve(reply("СЦЕНА: кухня | утренний | сверху | книги | —\nПРОМТ ОТ ИИ: ваза на кухне"));
+    if (text.indexOf('"caption"') >= 0) return Promise.resolve(reply('```json\n{"caption":"Ваза для сухоцветов — первая строка.\\n\\nТекст.","hashtags":["#ДекорДляДома","ВазаДляСухоцветов"],"altText":"Бежевая ваза","firstComment":"А у вас какие цветы?","codeWord":"хочу","dmReply":"Ссылка: [ССЫЛКА]"}\n```'));
+    if (text.indexOf("режиссёр") >= 0) return Promise.resolve(reply("КРЮЧОК\n1. ..."));
+    if (text.indexOf('"verdict"') >= 0) return Promise.resolve(reply('{"verdict":"redo","summary":"Горлышко шире, чем у товара","checks":[{"area":"Товар","ok":false,"note":"горлышко"}],"fixes":["Сохрани узкое горлышко вазы"]}'));
+    if (text.indexOf("Внеси в промт") >= 0) return Promise.resolve(reply("ПРОМТ С ПРАВКАМИ"));
+    if (text.indexOf("Доработай по пожеланию") >= 0) return Promise.resolve(reply("ДОРАБОТАННАЯ ПОДПИСЬ"));
+    if (text.indexOf("Подготовь текст для наложения") >= 0) return Promise.resolve(reply("КИКЕР: новинка"));
+    return Promise.resolve(reply("ОК"));
+  }
+  function load(hash){ return new Promise(function(r){ f.onload = function(){ f.contentWindow.fetch = mockFetch; setTimeout(r, 900); }; f.src = "../index.html" + hash; }); }
+  async function go(hash){ f.contentWindow.location.hash = hash; await sleep(350); }
+  var q = function(s){ return f.contentDocument.querySelector(s); };
+  function click(sel){ var el = q(sel); if (!el) throw new Error("нет элемента " + sel); el.click(); }
+  var plan = function(){ return JSON.parse(localStorage.getItem("atelier.kv.plan/main")).slots; };
+  var prompt = function(s){ return JSON.parse(localStorage.getItem("atelier.kv.prompts/" + s.linkedPromptId) || "null"); };
+  async function waitFor(fn, ms){ for (var t = 0; t < (ms || 5000); t += 100){ if (fn()) return true; await sleep(100); } return false; }
+  try{
+    await load("#/plan-new/week");
+    ok(q('[data-bind="ui:wiz:ai"]').checked, "с ключом «идеи от ИИ» включены по умолчанию");
+    click('[data-act="generatePlan"]');
+    await waitFor(function(){ return localStorage.getItem("atelier.kv.plan/main"); });
+    await sleep(500);
+    ok(plan().length === 3 && plan().every(function(s){ return /^ИИ-идея/.test(s.note); }), "план: идеи от ИИ подставлены (" + plan().map(function(s){ return s.note; }).join("; ") + ")");
+
+    var s = plan().find(function(x){ return x.pillarType !== "QUOTE"; });
+    await go("#/post/" + s.id);
+    click('.cta-bar [data-act="createAll"]');
+    var done = await waitFor(function(){ var x = plan().find(function(y){ return y.id === s.id; }); return x.caption && !q(".cta-bar .spin"); }, 8000);
+    ok(done, "«Создать всё» завершилось");
+    var x = plan().find(function(y){ return y.id === s.id; });
+    ok(prompt(x) && prompt(x).text === "ПРОМТ ОТ ИИ: ваза на кухне", "промт от ИИ сохранён без строки СЦЕНА");
+    ok(x.scene && x.scene.location === "кухня", "сцена разобрана и сохранена для контроля повторов");
+    ok(/^Ваза для сухоцветов/.test(x.caption), "подпись сохранена");
+    ok(x.hashtags.join(" ") === "#ДекорДляДома #ВазаДляСухоцветов", "хэштеги нормализованы: " + x.hashtags.join(" "));
+    ok(x.altText && x.firstComment, "alt-текст и первый комментарий");
+    ok(x.pillarType !== "REELS" || x.reelsScript, "для Reels — сценарий");
+    ok((x.pillarType === "HERO") === !!x.layoutText, "для Hero в режиме «наложу сам» — текст макета");
+    ok(q('.cta-bar [data-act="copyPrompt"]'), "следующий шаг — «Промт → ChatGPT»");
+
+    click('[data-act="postTab"][data-v="text"]'); await sleep(150);
+    click('.refine[data-refine="caption"] [data-wish="Короче"]');
+    await waitFor(function(){ return plan().find(function(y){ return y.id === s.id; }).caption === "ДОРАБОТАННАЯ ПОДПИСЬ"; });
+    ok(plan().find(function(y){ return y.id === s.id; }).caption === "ДОРАБОТАННАЯ ПОДПИСЬ", "доработка подписи по быстрому пожеланию");
+    await sleep(300);
+    click('.refine[data-refine="caption"] [data-act="undo"]'); await sleep(500);
+    ok(/^Ваза для сухоцветов/.test(plan().find(function(y){ return y.id === s.id; }).caption), "↶ вернул прошлую подпись");
+
+    click('[data-act="postTab"][data-v="image"]'); await sleep(150);
+    var c = f.contentDocument.createElement("canvas"); c.width = 400; c.height = 500;
+    var g = c.getContext("2d"); g.fillStyle = "#c8a"; g.fillRect(0, 0, 400, 500);
+    var blob = await new Promise(function(r){ c.toBlob(r, "image/png"); });
+    var inp = q('input[data-upload="image"]');
+    var dt = new f.contentWindow.DataTransfer(); dt.items.add(new f.contentWindow.File([blob], "gen.png", {type: "image/png"}));
+    inp.files = dt.files; inp.dispatchEvent(new Event("change", {bubbles: true}));
+    await waitFor(function(){ var y = plan().find(function(z){ return z.id === s.id; }); return y.qa; }, 6000);
+    var y = plan().find(function(z){ return z.id === s.id; });
+    ok(!!localStorage.getItem("atelier.kv.thumbs/" + s.id), "превью картинки сохранено");
+    ok(y.qa && y.qa.verdict === "redo" && y.qa.fixes.length === 1, "автопроверка картинки после загрузки");
+    ok(calls.some(function(cl){ return cl.image && cl.text.indexOf("На приложенном изображении") === 0; }), "картинка ушла в запрос проверки");
+    await sleep(300);
+    click('[data-act="applyFixes"]');
+    await waitFor(function(){ var z = plan().find(function(w){ return w.id === s.id; }); return prompt(z) && prompt(z).text === "ПРОМТ С ПРАВКАМИ"; });
+    ok(prompt(plan().find(function(w){ return w.id === s.id; })).text === "ПРОМТ С ПРАВКАМИ", "правки проверки применены к промту");
+    ok(q('.cta-bar [data-act="publish"]'), "следующий шаг — «Опубликован»");
+    click('.cta-bar [data-act="publish"]'); await sleep(500);
+    ok(!!plan().find(function(w){ return w.id === s.id; }).publishedAt, "отмечен опубликованным");
+    ok(q('.cta-bar [data-act="postTab"][data-v="stats"]'), "следующий шаг — «Внести статистику»");
+    var b = q("#jsErrorBanner"); ok(b.hidden, "нет JS-ошибок");
+    ok(calls.length >= 6, "вызовов ИИ: " + calls.length);
+  }catch(e){ ok(false, "исключение: " + e.message); }
+  document.getElementById("out").textContent = (fails ? "FAILED " + fails : "ALL PASSED") + "\n" + out.join("\n");
+})();
+</script>

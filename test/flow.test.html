@@ -1,0 +1,99 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Сквозной тест без ИИ</title>
+<pre id="out">running…</pre>
+<iframe id="f" style="width:390px;height:844px;border:0"></iframe>
+<script>
+/* Прогоняет основной сценарий в приложении во фрейме (без ключа Claude): план на неделю → пост → шаблон промта → вкладки → экраны.
+   Внимание: очищает данные приложения в этом браузере. */
+(async function(){
+  var out = [], fails = 0;
+  function ok(c, n){ out.push((c ? "PASS " : "FAIL ") + n); if (!c) fails++; }
+  var sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+  var f = document.getElementById("f");
+  for (var i = localStorage.length - 1; i >= 0; i--){ var k = localStorage.key(i); if (k && k.indexOf("atelier.") === 0) localStorage.removeItem(k); }
+  localStorage.setItem("atelier.kv.config/brand", JSON.stringify({name: "Тест", postsPerWeek: 5}));
+  localStorage.setItem("atelier.kv.products/p1", JSON.stringify({id: "p1", name: "Ваза «Дюна»", height: 30, width: 14, depth: 14, benefits: ["матовая глазурь"], createdAt: "2026-01-01"}));
+  function load(hash){ return new Promise(function(r){ f.onload = function(){ setTimeout(r, 900); }; f.src = "../index.html" + hash; }); }
+  async function go(hash){ f.contentWindow.location.hash = hash; await sleep(350); }
+  var d = function(){ return f.contentDocument; };
+  var q = function(s){ return d().querySelector(s); };
+  var qa = function(s){ return Array.prototype.slice.call(d().querySelectorAll(s)); };
+  function click(sel){ var el = typeof sel === "string" ? q(sel) : sel; if (!el) throw new Error("нет элемента " + sel); el.click(); }
+  function noError(step){ var b = q("#jsErrorBanner"); ok(b && b.hidden, step + ": нет JS-ошибок" + (b && !b.hidden ? " — " + b.textContent : "")); }
+  function noHScroll(step){ var w = d().documentElement.scrollWidth; ok(w <= 390, step + ": нет горизонтальной прокрутки (" + w + "px)"); }
+  try{
+    await load("#/feed");
+    ok(!!q(".empty"), "пустая лента показывает приглашение");
+    ok(!!q(".onboard"), "карточка «Начало работы»");
+    noError("лента"); noHScroll("лента");
+
+    click('[data-act="openCreate"]'); await sleep(300);
+    ok(!!q("#sheet .sheet-list"), "кнопка ＋ открывает меню создания");
+    click('#sheet a[href="#/plan-new/week"]'); await sleep(500);
+    ok(!!q('[data-act="generatePlan"]'), "мастер плана открыт");
+    noHScroll("мастер плана");
+    click('[data-act="generatePlan"]'); await sleep(900);
+    var tiles = qa(".grid3 .tile");
+    ok(tiles.length === 5, "создано 5 постов (" + tiles.length + ")");
+    var plan = JSON.parse(localStorage.getItem("atelier.kv.plan/main") || "{}").slots || [];
+    ok(plan.length === 5, "план сохранён в хранилище");
+    var P = f.contentWindow.P;
+    var badRhythm = plan.some(function(s, i){ return i && P.PILLARS[s.pillarType].density === "dense" && P.PILLARS[plan[i - 1].pillarType].density === "dense"; });
+    ok(!badRhythm, "ритм: " + plan.map(function(s){ return s.pillarType; }).join(","));
+    ok(plan.every(function(s){ return s.date && s.time && s.rubric && s.goal; }), "у всех постов есть дата, время, рубрика, цель");
+    ok(plan.map(function(s){ return s.num; }).join(",") === "1,2,3,4,5", "номера 1–5");
+    ok(plan.filter(function(s){ return s.pillarType !== "QUOTE"; }).every(function(s){ return s.productId === "p1"; }), "товар подставлен");
+    noError("после плана");
+
+    var first = plan.find(function(s){ return s.pillarType !== "QUOTE"; });
+    await go("#/post/" + first.id);
+    ok(!!q(".stepper") && !!q(".cta-bar"), "экран поста: шаги и нижняя кнопка");
+    noHScroll("пост");
+    click('.cta-bar [data-act="createAll"]'); await sleep(900);
+    var plan2 = JSON.parse(localStorage.getItem("atelier.kv.plan/main")).slots;
+    var s2 = plan2.find(function(s){ return s.id === first.id; });
+    ok(!!s2.linkedPromptId, "без ключа собран шаблон промта");
+    var pr = JSON.parse(localStorage.getItem("atelier.kv.prompts/" + s2.linkedPromptId) || "null");
+    ok(pr && pr.text.indexOf("Ваза «Дюна»") >= 0 && pr.text.indexOf("БЕЗОПАСНАЯ ЗОНА") >= 0, "промт содержит товар и безопасную зону");
+    ok(!!q("textarea[data-prompt-edit]"), "промт показан на экране");
+    ok(/ключ/i.test(q("#toast").textContent), "подсказка про ключ Claude: " + q("#toast").textContent);
+
+    ["text", "extra", "stats", "image"].forEach(function(t){ click('[data-act="postTab"][data-v="' + t + '"]'); noError("вкладка " + t); });
+    click('[data-act="postTab"][data-v="stats"]'); await sleep(100);
+    var reach = q('[data-bind="slot:' + first.id + ':metrics.reach"]');
+    reach.value = "1000"; reach.dispatchEvent(new Event("input", {bubbles: true})); reach.dispatchEvent(new Event("change", {bubbles: true}));
+    var saves = q('[data-bind="slot:' + first.id + ':metrics.saves"]');
+    saves.value = "40"; saves.dispatchEvent(new Event("input", {bubbles: true})); saves.dispatchEvent(new Event("change", {bubbles: true}));
+    await sleep(900);
+    ok(!!q(".kpis") && /4%/.test(q(".kpis").textContent), "метрики → % сохранений: " + (q(".kpis") ? q(".kpis").textContent : "нет"));
+
+    var note = q('[data-bind="slot:' + first.id + ':note"]');
+    note.value = "Новая идея поста"; note.dispatchEvent(new Event("input", {bubbles: true}));
+    await sleep(900);
+    ok(JSON.parse(localStorage.getItem("atelier.kv.plan/main")).slots.find(function(s){ return s.id === first.id; }).note === "Новая идея поста", "правка идеи сохраняется сама");
+
+    click('[data-act="postMenu"]'); await sleep(250);
+    ok(!!q('#sheet [data-act="duplicate"]'), "меню поста");
+    click('#sheet [data-act="closeSheet"]'); await sleep(250);
+
+    for (var r of ["#/feed", "#/ideas", "#/ideas/events", "#/ideas/rivals", "#/growth", "#/growth/check", "#/growth/tests", "#/growth/collabs",
+                   "#/profile", "#/profile/brand", "#/profile/products", "#/profile/product/p1", "#/profile/connect", "#/profile/lists", "#/profile/backup", "#/profile/help"]){
+      await go(r); noError(r); noHScroll(r);
+    }
+    await go("#/feed");
+    click('[data-act="feedView"][data-v="list"]'); await sleep(150);
+    ok(qa(".prow").length === 5, "список: 5 строк");
+    noHScroll("список");
+    await go("#/ideas");
+    var inp = q("#ideaNew"); inp.value = "Идея из теста"; click('[data-act="addIdea"]'); await sleep(300);
+    ok(qa(".idea").length === 1, "идея добавлена в банк");
+    click('[data-act="ideaToPlan"]'); await sleep(400);
+    ok(JSON.parse(localStorage.getItem("atelier.kv.plan/main")).slots.length === 6, "идея → пост в плане");
+    await go("#/growth");
+    ok(!!q(".kpis.big"), "статистика видит пост с цифрами");
+    noError("финал");
+  }catch(e){ ok(false, "исключение: " + e.message); }
+  document.getElementById("out").textContent = (fails ? "FAILED " + fails : "ALL PASSED") + "\n" + out.join("\n");
+})();
+</script>

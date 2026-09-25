@@ -1,0 +1,31 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Тестовые данные</title>
+<pre id="out"></pre>
+<script>
+/* Кладёт в localStorage план в СТАРОМ формате (новые карточки первыми, без номеров) — для проверки миграции.
+   ?clear — очистить данные приложения. */
+(function(){
+  var keys = [];
+  for (var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if (k.indexOf("atelier.") === 0) keys.push(k); }
+  keys.forEach(function(k){ localStorage.removeItem(k); });
+  if (location.search.indexOf("clear") >= 0){ document.getElementById("out").textContent = "cleared " + keys.length; return; }
+  var now = Date.now();
+  var old = [
+    {id:"s9", pillarType:"REELS", note:"Видео 360° — обложка", linkedPromptId:null, defaults:null, createdAt:new Date(now-1000).toISOString()},
+    {id:"s8", pillarType:"MOOD", note:"Пасмурный свет, другая локация", linkedPromptId:null, defaults:null, createdAt:new Date(now-2000).toISOString()},
+    {id:"s7", pillarType:"HERO", note:"Диагональная композиция", linkedPromptId:"p1", defaults:{location:"гостиная"}, caption:"Старая подпись\n\n#тег1 #тег2", createdAt:new Date(now-3000).toISOString()},
+    {id:"s6", pillarType:"QUOTE", note:"Цитата о доме", linkedPromptId:null, defaults:null, createdAt:new Date(now-4000).toISOString()},
+    {id:"s5", pillarType:"CAROUSEL", note:"Распаковка → деталь", linkedPromptId:null, defaults:null, createdAt:new Date(now-5000).toISOString()},
+    {id:"s4", pillarType:"MACRO", note:"Фактура крупно", linkedPromptId:null, defaults:null, createdAt:new Date(now-6000).toISOString()},
+    {id:"s3", pillarType:"HERO", note:"Овальная виньетка", linkedPromptId:null, defaults:null, createdAt:new Date(now-7000).toISOString()},
+    {id:"s2", pillarType:"MOOD", note:"Вечерний свет", linkedPromptId:null, defaults:null, createdAt:new Date(now-8000).toISOString()},
+    {id:"s1", pillarType:"HERO", note:"Самый первый пост", linkedPromptId:null, defaults:null, createdAt:new Date(now-9000).toISOString()}
+  ];
+  localStorage.setItem("atelier.kv.plan/main", JSON.stringify({slots: old}));
+  localStorage.setItem("atelier.kv.prompts/p1", JSON.stringify({id:"p1", slotId:"s7", pillarType:"HERO", text:"Старый промт карточки", location:"гостиная", angle:"низкий ракурс", createdAt:new Date(now-3000).toISOString()}));
+  localStorage.setItem("atelier.kv.config/brand", JSON.stringify({name:"Ателье дома", handle:"@atelier.home"}));
+  localStorage.setItem("atelier.kv.products/pr1", JSON.stringify({id:"pr1", name:"Ваза «Дюна»", category:"керамическая ваза", height:30, width:14, depth:14, benefits:["матовая глазурь","устойчивое дно"], createdAt:new Date().toISOString()}));
+  document.getElementById("out").textContent = "seeded";
+})();
+</script>

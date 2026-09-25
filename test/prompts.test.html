@@ -1,0 +1,62 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Тесты prompts.js</title>
+<pre id="out">running…</pre>
+<script src="../prompts.js"></script>
+<script>
+(function(){
+  var lines = [], fails = 0;
+  function ok(cond, name){ lines.push((cond ? "PASS " : "FAIL ") + name); if (!cond) fails++; }
+  try{
+    var P = window.P;
+    P.TYPE_KEYS.forEach(function(t){
+      ["A","B"].forEach(function(m){
+        var txt = P.buildPromptText(t, {index: 7, textMode: m, note: "идея", goal: "sales", codeWord: "ХОЧУ", productName: "Ваза", height: 30});
+        ok(txt.indexOf("4:5, 1080 × 1350 px") >= 0, t + "/" + m + ": формат 4:5");
+        ok(txt.indexOf("ДНК СЕРИИ") >= 0, t + "/" + m + ": ДНК серии");
+        ok(txt.indexOf("БЕЗОПАСНАЯ ЗОНА") >= 0, t + "/" + m + ": безопасная зона");
+        ok(txt.indexOf("ЧАСТЫЕ ДЕФЕКТЫ") >= 0, t + "/" + m + ": дефекты");
+        ok((txt.indexOf("ТОВАР — без искажений") >= 0) === (t !== "QUOTE"), t + "/" + m + ": блок товара только с товаром");
+        var hasText = t === "HERO" || t === "QUOTE" || t === "CAROUSEL";
+        ok((txt.indexOf("НЕ ДОБАВЛЯТЬ") >= 0) === (hasText && m === "B"), t + "/" + m + ": режим Б только для текстовых");
+      });
+    });
+    var car = P.buildPromptText("CAROUSEL", {goal: "sales", codeWord: "ХОЧУ", note: "5 способов"});
+    ok(/5–8/.test(car) && car.indexOf("ХОЧУ") >= 0, "карусель: 5–8 слайдов и кодовое слово в призыве");
+    var hero = P.buildPromptText("HERO", {height: 30, width: 20});
+    ok(hero.indexOf("Высота — 30 см") >= 0 && hero.indexOf("[ГЛУБИНА]") >= 0, "hero: размеры и плейсхолдер");
+    var st = P.toStoryFormat(P.buildPromptText("MOOD", {}));
+    ok(st.indexOf("9:16") >= 0 && st.indexOf("4:5, 1080 × 1350") < 0, "9:16: формат заменён");
+    var sc = P.parseSceneLine("СЦЕНА: гостиная | вечер | сбоку | книги | —\n\nТекст промта");
+    ok(sc.scene && sc.scene.location === "гостиная" && sc.scene.composition === "" && sc.prompt === "Текст промта", "разбор строки СЦЕНА");
+    ok(P.parseSceneLine("Просто промт").scene === null, "без строки СЦЕНА");
+    for (var r = 0; r < 50; r++){
+      var seq = P.generateRhythmSequence(12, [], "HERO");
+      var bad = seq.some(function(t, i){ var prev = i ? seq[i - 1] : "HERO"; return P.PILLARS[t].density === "dense" && P.PILLARS[prev].density === "dense"; });
+      if (bad){ ok(false, "ритм: " + seq.join(",")); break; }
+    }
+    ok(true, "ритм: 50 прогонов без двух плотных подряд");
+    var prev = "HERO", badT = false;
+    P.assignRubrics(20).forEach(function(rb){ var t = P.typeForRubric(rb.name, prev); if (P.PILLARS[t].density === "dense" && P.PILLARS[prev].density === "dense") badT = true; prev = t; });
+    ok(!badT, "типы под рубрики соблюдают ритм");
+    var counts = {}; P.assignRubrics(20).forEach(function(r){ counts[r.name] = (counts[r.name] || 0) + 1; });
+    ok(counts["Вдохновение"] === 5 && counts["Польза"] === 5 && counts["Товар"] === 4, "доли рубрик 25/25/20: " + JSON.stringify(counts));
+    var ev = P.upcomingEvents("2026-11-01", 40, [{date: "11-15", title: "Своё"}]);
+    var titles = ev.map(function(e){ return e.date + " " + e.title; }).join("; ");
+    ok(titles.indexOf("2026-11-27 Чёрная пятница") >= 0, "чёрная пятница 2026-11-27: " + titles);
+    ok(titles.indexOf("2026-11-29 День матери") >= 0, "день матери 2026-11-29");
+    ok(titles.indexOf("2026-11-15 Своё") >= 0, "свой повод");
+    var rt = P.rates({reach: 1000, saves: 50, shares: 20, likes: 100, comments: 10});
+    ok(rt.savesPct === 5 && rt.sharesPct === 2 && rt.er === 18, "метрики: " + JSON.stringify(rt));
+    ok(P.rates({}) === null, "метрики без охвата");
+    var slot = {num: 3, pillarType: "HERO", goal: "sales", note: "Ваза", codeWord: "ВАЗА"};
+    var cap = P.captionPackRequest({slot: slot, brand: {name: "Ателье", examples: ["Пример подписи"]}, insights: [{text: "Reels с руками лучше"}], product: {name: "Ваза", height: 30}});
+    ok(cap.indexOf('"caption"') >= 0 && cap.indexOf("ВАЗА") >= 0 && cap.indexOf("Reels с руками лучше") >= 0 && cap.indexOf("Пример подписи") >= 0, "пакет текста: JSON, кодовое слово, выводы, примеры");
+    var req = P.createPromptRequest({slot: slot, template: "ШАБЛОН", used: [{pillarType: "HERO", location: "кухня"}], neighbors: "№2 ..."});
+    ok(req.indexOf("СЦЕНА:") >= 0 && req.indexOf("кухня") >= 0 && req.indexOf("ШАБЛОН") >= 0, "запрос промта: формат, использовано, шаблон");
+    ok(P.checkRepeat("HERO", {location: "кухня"}, [{pillarType: "HERO", location: "кухня"}]).indexOf("кухня") >= 0, "повтор локации");
+    ok(P.errorText({code: "no_key"}).indexOf("Профиль") >= 0, "текст ошибки без ключа");
+  }catch(e){ lines.push("FAIL exception: " + e.message + "\n" + e.stack); fails++; }
+  document.getElementById("out").textContent = (fails ? "FAILED " + fails : "ALL PASSED") + "\n" + lines.join("\n");
+})();
+</script>
